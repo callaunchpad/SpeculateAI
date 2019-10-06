@@ -181,3 +181,18 @@ class AggregateModel():
             predictions = sess.run(self.model_output, feed_dict=feed_dict)
 
         return predictions
+
+    def set_training_regime(self, end_to_end):
+        """
+        Sets whether or not to train the model end to end
+
+        :param end_to_end: A boolean whether or not to set the training regime to end to end
+        :return: None
+        """
+
+        if end_to_end:
+            trainable_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES)
+        else:
+            trainable_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope="DOWN")
+
+        self.train_op = tf.train.AdamOptimizer().minimize(self.loss, var_list=trainable_vars)

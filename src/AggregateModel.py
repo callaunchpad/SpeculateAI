@@ -58,7 +58,7 @@ class AggregateModel():
         downstream_model.inputs = downstream_input
 
         # The output of the downstream model
-        self.downstream_output = downstream_model.output
+        self.model_output = downstream_model.output
 
         # The labels fed in for training the aggregated model
         self.model_labels = tf.placeholder(shape=[None] + label_shape, dtype=tf.float32)
@@ -91,7 +91,28 @@ class AggregateModel():
         :return: The loss on this given training step
         """
 
-        raise NotImplementedError()
+        if tsa_callback:
+            # Get the tsa outputs
+            tsa_outputs = tsa_callback(tsa_inputs)
+
+            feed_dict = {
+                self.nlp_inputs: nlp_inputs,
+                self.tsa_outputs: tsa_outputs,
+                self.model_labels: labels
+            }
+
+            loss_value, _ = sess.run([self.loss, self.train_op], feed_dict=feed_dict)
+
+        else:
+            feed_dict = {
+                self.nlp_inputs: nlp_inputs,
+                self.tsa_inputs: tsa_inputs,
+                self.model_labels: labels
+            }
+
+            loss_value, _ = sess.run([self.loss, self.train_op], feed_dict=feed_dict)
+
+        return loss_value
 
     def get_loss(self, nlp_inputs, tsa_inputs, labels, sess, tsa_callback=None):
         """
@@ -105,9 +126,31 @@ class AggregateModel():
         :return: The loss on this given (inputs, labels) set
         """
 
-        raise NotImplementedError()
+        if tsa_callback:
+            # Get the tsa outputs
+            tsa_outputs = tsa_callback(tsa_inputs)
 
-    def predict(self, nlp_inputs, tsa_inputs, sess, tsa_callback):
+            feed_dict = {
+                self.nlp_inputs: nlp_inputs,
+                self.tsa_outputs: tsa_outputs,
+                self.model_labels: labels
+            }
+
+            loss_value = sess.run(self.loss, feed_dict=feed_dict)
+
+        else:
+            feed_dict = {
+                self.nlp_inputs: nlp_inputs,
+                self.tsa_inputs: tsa_inputs,
+                self.model_labels: labels
+            }
+
+            loss_value = sess.run(self.loss, feed_dict=feed_dict)
+
+        return loss_value
+
+
+    def predict(self, nlp_inputs, tsa_inputs, sess, tsa_callback=None):
         """
         Runs inference on the aggregated model for given inputs
 
@@ -118,4 +161,23 @@ class AggregateModel():
         :return: The predicted values after inference
         """
 
-        raise NotImplementedError()
+        if tsa_callback:
+            # Get the tsa outputs
+            tsa_outputs = tsa_callback(tsa_inputs)
+
+            feed_dict = {
+                self.nlp_inputs: nlp_inputs,
+                self.tsa_outputs: tsa_outputs
+            }
+
+            predictions = sess.run(self.model_output, feed_dict=feed_dict)
+
+        else:
+            feed_dict = {
+                self.nlp_inputs: nlp_inputs,
+                self.tsa_inputs: tsa_inputs
+            }
+
+            predictions = sess.run(self.model_output, feed_dict=feed_dict)
+
+        return predictions

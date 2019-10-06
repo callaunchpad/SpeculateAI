@@ -1,0 +1,5 @@
+**/.ipynb_checkpoints
+**/.DS_Store
+data/massive_stock_data
+data/massive_news_set.csv
+**/tf_intro

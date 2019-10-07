@@ -3,7 +3,7 @@ import gensim
 
 model = gensim.models.KeyedVectors.load_word2vec_format('/Users/sophiasong/Desktop/GoogleNews-vectors-negative300.bin', binary=True)
 word2vec = model.wv
-vocab = model.vocabulary
+vocab = model.vocab
 del model
 
 data = pd.read_csv('RedditNews.csv')
@@ -23,7 +23,7 @@ for line in words:
 			if word in vocab:
 				uniqueWords[word] = word2vec.get_vector(word)
 
-print(uniqueWords[0])
+print(uniqueWords["hello'"])
 			
 
 

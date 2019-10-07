@@ -23,7 +23,10 @@ for line in words:
 			if word in vocab:
 				uniqueWords[word] = word2vec.get_vector(word)
 
-print(uniqueWords["hello'"])
+
+for key, value in uniqueWords.items():
+	print(key, value)
+	break
 			
 
 

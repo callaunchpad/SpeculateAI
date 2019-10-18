@@ -6,9 +6,12 @@ from sklearn.model_selection import KFold
 
 def MA(ts, window):
     # MOVING AVERAGE FEATURE
+    return ts.rolling(window).mean()
 
 def EMA(ts, window):
     # MOVING AVERAGE FEATURE
+    ewma = pd.Series.ewm
+    ewma(ts, span=window).mean()
 
 def MACD(ts, window):
     # MOVING AVERAGE FEATURE

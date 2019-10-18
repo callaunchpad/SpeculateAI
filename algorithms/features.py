@@ -1,8 +1,5 @@
 import pandas as pd
 import numpy as np
-import time
-from sklearn.metrics import mean_squared_error
-from sklearn.model_selection import KFold
 
 def MA(ts, window):
     # MOVING AVERAGE FEATURE

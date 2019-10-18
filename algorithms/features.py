@@ -6,9 +6,12 @@ from sklearn.model_selection import KFold
 
 def MA(ts, window):
     # MOVING AVERAGE FEATURE
+    return ts.rolling(window).mean()
 
 def EMA(ts, window):
     # MOVING AVERAGE FEATURE
+    ewma = pd.Series.ewm
+    ewma(ts, span=window).mean()
 
 def MACD(ts):
     # MOVING AVERAGE FEATURE
@@ -35,9 +38,35 @@ def BB(ts, stddev, window):
 
 def RSI(ts, window):
     # MOVING AVERAGE FEATURE
+    deltas = np.diff(ts)
+    seed = deltas[:window+1]
+    up = seed[seed>=0].sum()/window
+    down = -seed[seed<0].sum()/window
+    rs = up/down
+    rsi = np.zeros_like(ts)
+    rsi[:window] = 100. - 100./(1.+rs)
+
+    for i in range(window, len(ts)):
+        delta = deltas[i-1] # cause the diff is 1 shorter
+
+        if delta>0:
+            upval = delta
+            downval = 0.
+        else:
+            upval = 0.
+            downval = -delta
+
+        up = (up*(window-1) + upval)/window
+        down = (down*(window-1) + downval)/window
+
+        rs = up/down
+        rsi[i] = 100. - 100./(1.+rs)
+
+    return rsi
 
 def VMA(ts, window):
     # VOLUME MOVING AVERAGE FEATURE
+    return ts.rolling(window).mean()
 
 def get_labels(ts):
     # -1 is go down, 0 is stay the same, 1 is go up

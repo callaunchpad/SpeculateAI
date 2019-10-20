@@ -8,7 +8,7 @@ def MA(ts, window):
 def EMA(ts, window):s
     # MOVING AVERAGE FEATURE
     ewma = pd.Series.ewm
-    ewma(ts, span=window).mean()
+    return ewma(ts, span=window).mean()
 
 def MACD(ts):
     # MOVING AVERAGE FEATURE

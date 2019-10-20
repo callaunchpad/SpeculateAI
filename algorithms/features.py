@@ -5,7 +5,7 @@ def MA(ts, window):
     # MOVING AVERAGE FEATURE
     return ts.rolling(window).mean()
 
-def EMA(ts, window):
+def EMA(ts, window):s
     # MOVING AVERAGE FEATURE
     ewma = pd.Series.ewm
     ewma(ts, span=window).mean()

@@ -1,6 +1,13 @@
 from features import *
+import pandas as pd
+import matplotlib.pyplot as plt
 
-def run_tests():
+
+df_DJIA = pd.read_csv("../data/DJIA_table.csv")
+df_close = df_DJIA["Close"]
+df_open = df_DJIA["Open"]
+
+def main():
     testMA()
     testEMA()
     testMACD()
@@ -10,23 +17,54 @@ def run_tests():
     test_labels()
 
 def testMA():
-    return
+    y = MA(df_open, 5)
+    plot(y, "MA")
+
 
 def testEMA():
-    return
+    y = EMA(df_open, 5)
+    plot(y, "EMA")
 
 def testMACD():
-    return
+    y = MACD(df_open)
+    plot(y, "MACD")
 
 def testBB():
-    return
+    y_lower, y_upper = BB(df_open, 5, 2)
+    y_lower.reverse()
+    y_upper.reverse()
+    plt.plot(y_lower)
+    plt.plot(y_upper)
+    plt.xlabel("Day")
+    plt.ylabel("Value")
+    plt.title("BB")
+    plt.show()
+
 
 def testRSI():
-    return
+    y = RSI(df_open, 5)
+    plot(y, "RSI")
+
 
 def testVMA():
-    return
+    y = VMA(df_close, 5)
+    plot(y, "VMA")
 
 def test_labels():
-    return
+    y = get_labels(df_open)
+    plt.plot(y)
+    plt.xlabel("Day")
+    plt.ylabel("Value")
+    plt.title("Labels")
+    plt.show()
+def plot(df, title):
+    y_1 = df.tolist()
+    y_1.reverse()
+    plt.plot(y_1)
+    plt.xlabel("Day")
+    plt.ylabel("Value")
+    plt.title(title)
+    plt.show()
 
+if __name__== "__main__":
+    main()

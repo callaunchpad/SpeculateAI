@@ -16,7 +16,7 @@ def MACD(ts):
     return EMA(ts, 12) - EMA (ts, 26)
 
 
-def BB(ts, stddev, window):
+def BB(ts, window, stddev=2):
     # BOLLINGER BAND FEATURE
 
     # upper bound
@@ -66,18 +66,15 @@ def VMA(ts, window):
     return ts.rolling(window).mean()
 
 def get_labels(ts):
-    # -1 is go down, 0 is stay the same, 1 is go up
-    # First input is always 0
+    # 0 is go down, 1 is go up
 
-    labels = [0]
+    labels = []
     for i in range(1, len(ts)):
         prev = ts[i - 1]
         curr = ts[i]
         if prev > curr:
-            labels.append(-1)
-        elif prev == curr:
             labels.append(0)
-        elif prev < curr:
+        else:
             labels.append(1)
     return labels
 

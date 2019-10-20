@@ -3,7 +3,7 @@ import numpy as np
 
 def MA(ts, window):
     # MOVING AVERAGE FEATURE
-    return ts.rolling(window).mean()
+    return ts.rolling(window, 1).mean()
 
 def EMA(ts, window):
     # MOVING AVERAGE FEATURE
@@ -63,7 +63,7 @@ def RSI(ts, window):
 
 def VMA(ts, window):
     # VOLUME MOVING AVERAGE FEATURE
-    return ts.rolling(window).mean()
+    return ts.rolling(window, 1).mean()
 
 def get_labels(ts):
     # 0 is go down, 1 is go up

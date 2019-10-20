@@ -1,8 +1,13 @@
 from features import *
 
-def main():
+def run_tests():
     testMA()
-
+    testEMA()
+    testMACD()
+    testBB()
+    testRSI()
+    testVMA()
+    test_labels()
 
 def testMA():
     return

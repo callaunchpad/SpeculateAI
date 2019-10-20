@@ -2,8 +2,5 @@
 **/.DS_Store
 data/massive_stock_data
 data/massive_news_set.csv
-.idea/SpeculateAI.iml
-.idea/misc.xml
-.idea/modules.xml
-.idea/vcs.xml
+.idea/*.*
 **/tf_intro

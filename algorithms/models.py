@@ -10,4 +10,4 @@ def logModel(features, target):
     for i in features:
         i = np.asarray(i)
         X = np.hstack((X, np.transpose([i])))
-    return LogisticRegression().fit(X, target)
+    return LogisticRegression(solver='liblinear').fit(X, target)

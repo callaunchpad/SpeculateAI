@@ -1,6 +1,6 @@
 from models import *
 
-test_percent = 50 # Percent of data used for verification
+test_percent = 20 # Percent of data used for verification
 
 df_DJIA = pd.read_csv("../data/DJIA_table.csv")
 split = int(len(df_DJIA["Close"]) * (1 - test_percent/100))
@@ -44,7 +44,7 @@ def test_model(model, test_data):
         i = np.asarray(i)
         x = np.hstack((x, np.transpose([i])))
 
-    print("Model was accurate on " + str(round(model.score(x, get_labels(test_data)[5:]), 4) * 100)
+    print(f"SPLIT = {test_percent}%. Model was accurate on " + str(round(model.score(x, get_labels(test_data)[5:]), 4) * 100)
           + "% of the test samples")
 
 

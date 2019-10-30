@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 
 
 df_DJIA = pd.read_csv("../data/DJIA_table.csv")
-df_close = df_DJIA["Close"]
-df_open = df_DJIA["Open"]
+df_close = df_DJIA["Close"][1589:]
+df_open = df_DJIA["Open"][1589:]
 
 def main():
     testMA()

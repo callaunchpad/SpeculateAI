@@ -1,14 +1,17 @@
 import pandas as pd
 import numpy as np
 
+
 def MA(ts, window):
     # MOVING AVERAGE FEATURE
-    return ts.rolling(window).mean()
+    return ts.rolling(window, 1).mean()
 
-def EMA(ts, window):s
+
+def EMA(ts, window):
     # MOVING AVERAGE FEATURE
     ewma = pd.Series.ewm
     return ewma(ts, span=window).mean()
+
 
 def MACD(ts):
     # MOVING AVERAGE FEATURE
@@ -19,31 +22,42 @@ def MACD(ts):
 def BB(ts, window, stddev=2):
     # BOLLINGER BAND FEATURE
 
-    # upper bound
-    bolu = []
-    # lower bound
-    boll = []
-
     ma = MA(ts, window)
     std = std_window(ts, window)
 
-    for i in range(len(ma)):
-        bolu.append(ma[i] + stddev * std[i])
-        boll.append(ma[i] - stddev * std[i])
+    bolu = ma + stddev * std
+    boll = ma - stddev * std
 
-    return bolu, boll
+    return ts_to_lst(bolu), ts_to_lst(boll)
+
+    # # upper bound
+    # bolu = []
+    # # lower bound
+    # boll = []
+    #
+    #
+    #
+    # for i in range(len(ma)):
+    #     bolu.append(ma[i] + stddev * std[i])
+    #     boll.append(ma[i] - stddev * std[i])
+    #
+    # return bolu, boll
+
 
 def RSI(ts, window):
     # MOVING AVERAGE FEATURE
-    deltas = np.diff(ts)
+
+    lst = ts_to_lst(ts)
+
+    deltas = np.diff(lst)
     seed = deltas[:window+1]
     up = seed[seed>=0].sum()/window
     down = -seed[seed<0].sum()/window
     rs = up/down
-    rsi = np.zeros_like(ts)
+    rsi = np.zeros_like(lst)
     rsi[:window] = 100. - 100./(1.+rs)
 
-    for i in range(window, len(ts)):
+    for i in range(window, len(lst)):
         delta = deltas[i-1] # cause the diff is 1 shorter
 
         if delta>0:
@@ -61,17 +75,21 @@ def RSI(ts, window):
 
     return rsi
 
+
 def VMA(ts, window):
     # VOLUME MOVING AVERAGE FEATURE
-    return ts.rolling(window).mean()
+    return ts.rolling(window, 1).mean()
+
 
 def get_labels(ts):
     # 0 is go down, 1 is go up
 
+    lst = ts_to_lst(ts)
+
     labels = []
-    for i in range(1, len(ts)):
-        prev = ts[i - 1]
-        curr = ts[i]
+    for i in range(len(lst)):
+        prev = lst[i - 1]
+        curr = lst[i]
         if prev > curr:
             labels.append(0)
         else:
@@ -83,3 +101,10 @@ def std_window(ts, window):
     res = ts.rolling(window, 1).std()
 
     return res
+
+
+def ts_to_lst(ts):
+    lst = []
+    for i in ts:
+        lst.append(i)
+    return lst

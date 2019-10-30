@@ -1,7 +1,8 @@
-import numpy as np
+from features import *
 from sklearn.linear_model import LogisticRegression
 
 def logModel(features, target):
+    # FEATURES TAKES IN NUMPY ARRAY
     # features columns = return from a single feature
     # target = get_labels
 
@@ -9,4 +10,4 @@ def logModel(features, target):
     for i in features:
         i = np.asarray(i)
         X = np.hstack((X, np.transpose([i])))
-    return LogisticRegression().fit(X, target)
+    return LogisticRegression(solver='liblinear').fit(X, target)

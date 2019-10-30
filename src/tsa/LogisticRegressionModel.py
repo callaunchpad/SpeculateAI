@@ -1,4 +1,5 @@
-from models import *
+from features import *
+from sklearn.linear_model import LogisticRegression
 
 test_percent = 20 # Percent of data used for verification
 
@@ -7,6 +8,16 @@ split = int(len(df_DJIA["Close"]) * (1 - test_percent/100))
 close = df_DJIA["Close"][:split]
 test = df_DJIA["Close"][split:]
 
+def logModel(features, target):
+    # FEATURES TAKES IN NUMPY ARRAY
+    # features columns = return from a single feature
+    # target = get_labels
+
+    X = np.zeros((len(target),1))
+    for i in features:
+        i = np.asarray(i)
+        X = np.hstack((X, np.transpose([i])))
+    return LogisticRegression(solver='liblinear').fit(X, target)
 
 def feature_list(data, window):
     features = []

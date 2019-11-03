@@ -39,7 +39,8 @@ class BaseModel:
             self.loss = None
             self.train_op = None
 
-        return
+        vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES)
+        self.saver = tf.train.Saver(var_list=vars)
 
     def train_step(self, inputs, labels, sess):
         """
@@ -96,31 +97,39 @@ class BaseModel:
 
         return outputs
 
-    def save_model(self, save_name=None):
+    def save_model(self, sess, save_name=None):
         """
-        Saves the model in the checkpoints folder
-        :param save_name: The name under which to save the model
+        Saves the computation graph into a tf save format
+
+        :param sess: The tf session to save a graph from
+        :param save_name: The output file name
         :return: None
         """
         print("Saving model...")
+
         if save_name is not None:
-            self.saver.save(self.sess, "./checkpoints/UNet" + save_name)
+            self.saver.save(sess, "./checkpoints/" + save_name)
             return
 
-        self.saver.save(self.sess, "./checkpoints/UNet" + str(self.start_channel_depth))
+        self.saver.save(sess, "./checkpoints/saved_model")
 
-    def load_model(self, starting_depth):
+    def load_model(self, sess, save_name=None):
         """
-        Loads in the pre-trained weights from the specified model
-        :param starting_depth: Specifies a model to load by the starting channel depth
+        Loads a saved model from tf save format into computational graph
+
+        :param sess: The computation session in which to load the graph
+        :param save_name: The name of the checkpoints to load
         :return: None
         """
-        vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES)
 
-        ckpt = tf.train.get_checkpoint_state("./checkpoints/")
+        if save_name is not None:
+            ckpt = tf.train.get_checkpoint_state("./checkpoints/" + save_name)
+        else:
+            ckpt = tf.train.get_checkpoint_state("./checkpoints/saved_model")
+
         if ckpt:
             print('loaded ' + ckpt.model_checkpoint_path)
-            self.saver.restore(self.sess, ckpt.model_checkpoint_path)
+            self.saver.restore(sess, ckpt.model_checkpoint_path)
         else:
             print('load failed')
             exit(0)

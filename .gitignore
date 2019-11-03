@@ -3,3 +3,5 @@
 data/massive_stock_data
 data/massive_news_set.csv
 **/tf_intro
+
+model.gz

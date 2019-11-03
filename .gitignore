@@ -2,6 +2,7 @@
 **/.DS_Store
 data/massive_stock_data
 data/massive_news_set.csv
+.idea/*.*
 **/tf_intro
 
 model.gz

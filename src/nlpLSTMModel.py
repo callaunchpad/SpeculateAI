@@ -54,7 +54,7 @@ class nlpModel:
             self.output, states = tf.nn.dynamic_rnn(multi_cell, inputs=input_emb, dtype=tf.float32)
             
             output_logits = tf.layers.dense(self.output, vocab_size, name="Output_Projection")
-            self.loss = tf.losses.sparse_softmax_cross_entropy(tf.cast(self.output, tf.int32), output_logits)
+            self.loss = tf.losses.sparse_softmax_cross_entropy(tf.cast(self.labels, tf.int32), output_logits)
             
             optimizer = tf.train.AdamOptimizer(self.learning_rate)        
             self.train_op = optimizer.minimize(self.loss)

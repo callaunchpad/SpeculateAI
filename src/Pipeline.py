@@ -20,3 +20,4 @@ def vectorize(arr):
 
 def label(arr):
     return arr
+

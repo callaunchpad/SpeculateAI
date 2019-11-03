@@ -1,13 +1,8 @@
+import numpy as np
+import os
 import gensim
 from gensim.test.utils import datapath
 from gensim.models import KeyedVectors
-
-'''
-    Tokens:
-        START - start token
-        PAD - padding token
-        END - end token
-'''
 
 def tokenize(s, arr_len=100):
     tokenizedArr = ["START"]
@@ -28,7 +23,15 @@ def vectorize(arr):
     return vectors
 
 def label(arr):
-    return arr
+    words = open(os.getcwd() + "/wordList.txt", "r")
+    words_list = [word.strip('\n') for word in words.readlines()]
+    words.close()
 
-vector = vectorize(["hello"])
-print(vector)
+    # Plus one for the END character
+    all_vecs = np.eye(len(words_list) + 1)
+    nonlabel = np.zeros(len(words_list) + 1)
+    label_words = arr[1:] + ["END"]
+    labels = [all_vecs[words_list.index(word)] if word not in ["END", "PAD"] else nonlabel for word in label_words]
+    masks = [0 if word in ["END", "PAD"] else 1 for word in label_words]
+    return labels, masks
+

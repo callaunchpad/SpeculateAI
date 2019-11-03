@@ -95,3 +95,32 @@ class BaseModel:
         outputs = sess.run(self.output, feed_dict=feed_dict)
 
         return outputs
+
+    def save_model(self, save_name=None):
+        """
+        Saves the model in the checkpoints folder
+        :param save_name: The name under which to save the model
+        :return: None
+        """
+        print("Saving model...")
+        if save_name is not None:
+            self.saver.save(self.sess, "./checkpoints/UNet" + save_name)
+            return
+
+        self.saver.save(self.sess, "./checkpoints/UNet" + str(self.start_channel_depth))
+
+    def load_model(self, starting_depth):
+        """
+        Loads in the pre-trained weights from the specified model
+        :param starting_depth: Specifies a model to load by the starting channel depth
+        :return: None
+        """
+        vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES)
+
+        ckpt = tf.train.get_checkpoint_state("./checkpoints/")
+        if ckpt:
+            print('loaded ' + ckpt.model_checkpoint_path)
+            self.saver.restore(self.sess, ckpt.model_checkpoint_path)
+        else:
+            print('load failed')
+            exit(0)

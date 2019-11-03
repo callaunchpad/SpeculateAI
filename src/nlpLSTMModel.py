@@ -9,6 +9,12 @@ class nlpModel:
     def __init__(self, hyper_parameters={}):
         """
         Sets up any hyper-parameters that we may need for the model and builds the graph
+
+        Hyper Parameters:
+            input-length
+            vocab_size
+            rnn_size
+            learning_rate
         """
         # The following sets the tensorflow scope for this particular model
         # It is important that the model have one of a few scopes:

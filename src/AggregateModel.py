@@ -49,6 +49,7 @@ class AggregateModel():
             self.tsa_outputs = tsa_model.output
         else:
             # If our tsa model is a not a TF graph (e.g. logistic regression)
+            # In this case we should just treat its outputs as something we cannot backprop into    
             self.tsa_outputs = tf.placeholder(dtype=tf.float32, shape=[None, 1])
 
         # The combination of the nlp and time series outputs

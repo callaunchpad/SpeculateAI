@@ -4,5 +4,5 @@ data/massive_stock_data
 data/massive_news_set.csv
 .idea/*.*
 **/tf_intro
-
 model.gz
+**/__pycache__

@@ -196,3 +196,40 @@ class AggregateModel():
             trainable_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope="DOWN")
 
         self.train_op = tf.train.AdamOptimizer().minimize(self.loss, var_list=trainable_vars)
+
+    def save_model(self, sess, save_name=None):
+        """
+        Saves the computation graph into a tf save format
+
+        :param sess: The tf session to save a graph from
+        :param save_name: The output file name
+        :return: None
+        """
+        print("Saving model...")
+
+        if save_name is not None:
+            self.saver.save(sess, "./checkpoints/" + save_name)
+            return
+
+        self.saver.save(sess, "./checkpoints/saved_model")
+
+    def load_model(self, sess, save_name=None):
+        """
+        Loads a saved model from tf save format into computational graph
+
+        :param sess: The computation session in which to load the graph
+        :param save_name: The name of the checkpoints to load
+        :return: None
+        """
+
+        if save_name is not None:
+            ckpt = tf.train.get_checkpoint_state("./checkpoints/" + save_name)
+        else:
+            ckpt = tf.train.get_checkpoint_state("./checkpoints/saved_model")
+
+        if ckpt:
+            print('loaded ' + ckpt.model_checkpoint_path)
+            self.saver.restore(sess, ckpt.model_checkpoint_path)
+        else:
+            print('load failed')
+            exit(0)

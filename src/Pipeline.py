@@ -34,4 +34,3 @@ def label(arr):
     labels = [all_vecs[words_list.index(word)] if word not in ["END", "PAD"] else nonlabel for word in label_words]
     masks = [0 if word in ["END", "PAD"] else 1 for word in label_words]
     return labels, masks
-

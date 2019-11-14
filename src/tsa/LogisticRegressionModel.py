@@ -1,44 +1,47 @@
 from features import *
-from pandas.errors import *
+import matplotlib.pyplot as plt
 from sklearn.linear_model import LogisticRegression
 import os
 
-test_percent = 20 # Percent of data used for verification
-lag_window = 7 # Number of Lag Points in Features
 
 # df_DJIA = pd.read_csv("../../data/DJIA_table.csv")
-# split = int(len(df_DJIA["Close"]) * (1 - test_percent/100))
+# split = int(len(df_DJIA["Close"]) * (1 - 20/100))
 # close = df_DJIA["Close"][:split].reset_index(drop=True)
 # test = df_DJIA["Close"][split:].reset_index(drop=True)
 
-# x = pd.read_csv("../../test/Data/Stocks/a.us.txt")
-# split = int(len(x["Close"]) * (1 - test_percent/100))
-# close = x["Close"][:split].reset_index(drop=True)
-# test = x["Close"][split:].reset_index(drop=True)
+x = pd.read_csv("../../data/test/Data/Stocks/a-t/a.us.txt")
+split = int(len(x["Close"]) * (1 - 20/100))
+close = x["Close"][:split].reset_index(drop=True)
+test = x["Close"][split:].reset_index(drop=True)
+
+x = pd.read_csv("../../data/test/Data/Stocks/a-t/aa.us.txt")
+split = int(len(x["Close"]) * (1 - 20/100))
+close1 = x["Close"][:split].reset_index(drop=True)
+test1 = x["Close"][split:].reset_index(drop=True)
 
 
-def get_data(directory):
-    result = []
-
-    for file in os.listdir(directory):
-        if len(result) > 1000:
-            break
-        filename = os.fsdecode(file)
-        print(filename)
-        if filename.endswith(".txt"):
-            try:
-                x = pd.read_csv(os.fsdecode(directory) + "/" + filename)
-                result.append(x["Close"].reset_index(drop=True))
-            except EmptyDataError:
-                continue
-    return pd.concat(result)
-
-
-train_dir = os.fsencode("../../data/test/Data/Stocks/a-t")
-test_dir = os.fsencode("../../data/test/Data/Stocks/u-z")
-
-close = get_data(train_dir)
-test = get_data(test_dir)
+# def get_data(directory):
+#     result = []
+#
+#     for file in os.listdir(directory):
+#         if len(result) > 100:
+#             break
+#         filename = os.fsdecode(file)
+#         print(filename)
+#         if filename.endswith(".txt"):
+#             try:
+#                 x = pd.read_csv(os.fsdecode(directory) + "/" + filename)
+#                 result.append(x["Close"].reset_index(drop=True))
+#             except pd.errors.EmptyDataError:
+#                 continue
+#     return pd.concat(result)
+#
+#
+# train_dir = os.fsencode("../../data/test/Data/Stocks/a-t")
+# test_dir = os.fsencode("../../data/test/Data/Stocks/u-z")
+#
+# close = get_data(train_dir)
+# test = get_data(test_dir)
 
 print(len(close), len(test))
 
@@ -53,46 +56,57 @@ def logModel(features, target):
         i = np.asarray(i)
         x = np.hstack((x, np.transpose([i])))
     x = x[:,1:]
-    return LogisticRegression().fit(x, target)
+    return LogisticRegression(solver='liblinear').fit(x, target)
 
 
-def feature_list(data, window):
-    features = []
+def model_eval(train_data, test_data, p):
 
-    bb1, bb2 = BB(data, window)
-    bb1, bb2 = bb1, bb2
+    lag_window = p[0] # Number of Lag Points in Features
+    window = p[1] # Feature window size
 
-    features.extend(get_lags(data, lag_window))
-    features.append(MA(data, window)[lag_window:])
-    features.append(EMA(data, window).tolist()[lag_window:])
-    features.append(MACD(data).tolist()[lag_window:])
-    features.append(bb1[lag_window:])
-    features.append(bb2[lag_window:])
-    features.append([bb1[i] - bb2[i] for i in range(lag_window, len(bb1))])
-    features.append(RSI(data, window).tolist()[lag_window:])
-    features.append(VMA(data, window).tolist()[lag_window:])
+    def feature_list(data):
 
-    return features
+        features = []
 
+        bb1, bb2 = BB(data, window)
+        bb1, bb2 = bb1, bb2
 
-trained_model = logModel(feature_list(close, 10), get_labels(close)[lag_window:])
+        features.extend(get_lags(data, lag_window))
+        features.append(MA(data, window)[lag_window:])
+        features.append(EMA(data, window).tolist()[lag_window:])
+        features.append(MACD(data).tolist()[lag_window:])
+        features.append(bb1[lag_window:])
+        features.append(bb2[lag_window:])
+        features.append([bb1[i] - bb2[i] for i in range(lag_window, len(bb1))])
+        features.append(RSI(data, window).tolist()[lag_window:])
+        features.append(VMA(data, window).tolist()[lag_window:])
 
+        return features
 
-def test_model(model, test_data, train_data):
+    trained_model = logModel(feature_list(train_data), get_labels(train_data)[lag_window:])
 
-    features = feature_list(test_data, 10)
+    test_features = feature_list(test_data)
 
     x = np.zeros((len(test_data)-(lag_window + 1), 1))
-    for i in features:
+    for i in test_features:
         i = i[:len(i)-1]
         i = np.asarray(i)
         x = np.hstack((x, np.transpose([i])))
     x = x[:, 1:]
-    print(f"Model accuracy: " + str(round(model.score(x, get_labels(test_data)[lag_window:]), 4) * 100) + "%")
+
+    score = round(trained_model.score(x, get_labels(test_data)[lag_window:]), 4) * 100
+
+    print(f"Model accuracy: " + str(score) + "%")
     print(f"# of Test Points: {len(test_data)}\n# of Train Points: {len(train_data)}")
     print(f"Lag Window Size: {lag_window}")
 
+    return score
 
-test_model(trained_model, close, close)
+# model_eval(close, test, [7,10])
 
-# BREAK INTO TEST AND TRAIN. TEST SHOULD BE FINAL X DAYS
+x = list(range(100, 250))
+plt.plot(x, [model_eval(close, test, [param, 10]) for param in x], color='green')
+plt.plot(x, [model_eval(close1, test1, [param, 10]) for param in x], color='blue')
+plt.xlabel("Lag Window Size")
+plt.ylabel("Accuracy (%)")
+plt.show()

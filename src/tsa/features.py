@@ -87,9 +87,9 @@ def get_labels(ts):
     lst = ts_to_lst(ts)
 
     labels = []
-    for i in range(len(lst)):
-        prev = lst[i - 1]
-        curr = lst[i]
+    for i in range(len(lst) - 1):
+        prev = lst[i]
+        curr = lst[i+1]
         if prev > curr:
             labels.append(0)
         else:

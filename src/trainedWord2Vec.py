@@ -1,14 +1,28 @@
-import gensim
-#import pickle
+import glob
+import json
+from Pipeline import *
 
-model = gensim.models.KeyedVectors.load_word2vec_format('/Users/sophiasong/Desktop/GoogleNews-vectors-negative300.bin', binary=True)
-word2vec = model.wv #holds the mapping between words and embeddings
-model.wv.save_word2vec_format('word2vec.bin', binary = True)
-#vocab = model.vocab
-#print(type(word2vec))
+unique_words = set()
+unique_words.add("START")
+unique_words.add("END")
+unique_words.add("PAD")
+unique_words.add("UNK")
 
-#with open('vectors.bin', 'wb') as v:
-	#pickle.dump(word2vec, v)
-	#v.close()
+json_files = glob.glob("../data/small_financial_news/*.json")
 
-#del model
+for json_file in json_files:
+    # Open the json file and pull the headline
+    with open(json_file, encoding='utf-8') as file:
+        # Load the title string into headline
+        headline = json.loads(file.read())['title']
+        # Clean the headline
+        headline = clean_headline(headline)
+        # Add it to the list of headlines
+
+        for word in headline.split(" "):
+            unique_words.add(word)
+
+# Save the vocabulary
+with open("vocabulary.txt", 'w') as vocab_file:
+    for word in unique_words:
+        vocab_file.write(f"{word}\n")

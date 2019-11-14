@@ -4,7 +4,7 @@ import numpy as np
 
 def MA(ts, window):
     # MOVING AVERAGE FEATURE
-    return ts.rolling(window, 1).mean()
+    return ts_to_lst(ts.rolling(window, 1).mean())
 
 
 def EMA(ts, window):
@@ -81,15 +81,30 @@ def VMA(ts, window):
     return ts.rolling(window, 1).mean()
 
 
+def get_lags(ts, window):
+    result = []
+
+    lst = ts_to_lst(ts)
+
+    for i in range(window):
+        result.append(lst[i:len(lst) - window + i])
+
+    result.append(lst[window:])
+
+    assert(len(result) == window + 1)
+
+    return result
+
+
 def get_labels(ts):
     # 0 is go down, 1 is go up
 
     lst = ts_to_lst(ts)
 
     labels = []
-    for i in range(len(lst)):
-        prev = lst[i - 1]
-        curr = lst[i]
+    for i in range(len(lst) - 1):
+        prev = lst[i]
+        curr = lst[i+1]
         if prev > curr:
             labels.append(0)
         else:

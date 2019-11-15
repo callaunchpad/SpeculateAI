@@ -1,49 +1,89 @@
 import pandas as pd
 from statsmodels.tsa.arima_model import ARIMA
-from matplotlib import pyplot
+from matplotlib import pyplot as plt
 from pandas.plotting import autocorrelation_plot
 from sklearn.metrics import mean_squared_error
 from features import *
-from r-pyramid.arima import auto_arima
+import pyramid as pm
+from pyramid.arima import auto_arima
 import glob
 
 def main():
-    data = pd.read_csv("../../data/DJIA_table.csv", header=0, index_col=0)
-    data = data.reindex(index=data.index[::-1])
-    series = data["Close"]
-    model, percentage, error = model_eval(series.values)
-    print("Percentage: ", percentage * 100, "Error: ", error)
+    # data = pd.read_csv("../../data/DJIA_table.csv", header=0, index_col=0)
+    # data = pd.read_table("../../data/Stocks/fox.us.txt", delimiter=',', header=0, index_col=0)
+    # data = data.reindex(index=data.index[::-1])
     # series = data["Close"]
-    # stock_dict = read_entire_market()
-    # print(len(stock_dict))
-
-    # models = train_on_market(stock_dict)
-
-    # series.plot()
-    # pyplot.show()
+    # first_order = difference(series)
+    # second_order = difference(first_order)
+    # model_eval(series)
+    # autocorrelation_plot(series)
+    # plt.show()
+    # plt.plot(series.values)
+    # plt.title("Dow Jones")
+    # plt.show()
+    # plt.plot(first_order.values)
+    # plt.title("First order differencing")
+    # plt.show()
+    # plt.plot(second_order.values)
+    # plt.title("Second order differencing")
+    # plt.show()
     # autocorrelation_plot(series)
     # pyplot.show()
-    # print("Length", len(models))
-    # train test split
-    # p_values = range(0, 10)
-    # d_values = range(0, 3)
-    # q_values = range(0, 3)
-    # best_score_cfg, best_percentage_cfg, score_dict, percentage_dict = hyperparameter_suite(X, p_values, d_values, q_values)
-    # print("Best configuration for score: ", best_score_cfg, score_dict[best_score_cfg])
-    # print("Best configuration for percentage: ", best_percentage_cfg, percentage_dict[best_percentage_cfg])
-    # percentage, error = model_eval(X, (1, 1, 0))
-    # print(percentage, error)
+    # model, correct, error = model_eval(series.values)
+    stock_dict = read_entire_market()
+    models, percentage, error, percentage_up, error_up, percentage_down, error_down = train_on_market(stock_dict)
+    print("Percentage correctly labeled: ", percentage, "Total error: ", error)
+    print("Percentage when market went up: ", percentage_up, "Total error: ", error_up)
+    print("Percentage when market went down: ", percentage_down, "Total error: ", error_down)
+# def difference(dataset, interval=1):
+# 	diff = list()
+# 	for i in range(interval, len(dataset)):
+# 		value = dataset[i] - dataset[i - interval]
+# 		diff.append(value)
+# 	return pd.Series(diff)
 
 def train_on_market(stock_dict):
     models = {}
+    total_correct = 0
+    total_error = 0
+    evaluated = 0
+    total_up = 0
+    total_down = 0
+    total_correct_up = 0
+    total_correct_down = 0
+    total_error_up = 0
+    total_error_down = 0
     for stock in stock_dict:
-        model, percentage_correct, error = model_eval(stock)
-        model_dict = {}
-        model_dict["model"] = model
-        model_dict["percentage_correct"] = percentage_correct
-        model_dict["error"] = error
-        models[stock] = model_dict
-    return models
+        print("Stock: ", stock)
+        try:
+            model, correct, error, label = model_eval(stock_dict[stock])
+            total_correct += correct
+            total_error += error
+            if label == 1:
+                total_correct_up += correct
+                total_error_up += error
+                total_up += 1
+            else:
+                total_correct_down += correct
+                total_error_down += error
+                total_down += 1
+            model_dict = {}
+            model_dict["model"] = model
+            model_dict["error"] = error
+            models[stock] = model_dict
+            evaluated += 1
+        except:
+            print("Something went wrong, continuing")
+            continue
+    print("Percentage when market went up: ", 100.0 * total_up/evaluated)
+    print("Percentage when market went down: ", 100.0 * total_down/evaluated)
+    percentage = total_correct / evaluated
+    percentage_up = total_correct_up / total_up
+    percentage_down = total_correct_down /total_down
+    error = total_error / evaluated
+    error_up = total_error_up /total_up
+    error_down = total_error_down /total_down
+    return models, percentage, error, percentage_up, error_up, percentage_down, error_down
 
 def read_entire_market():
     stock_path = "../../data/Stocks/"
@@ -62,56 +102,29 @@ def read_entire_market():
     return stock_dict
 
 def model_eval(values):
-    size = int(len(values) * 0.75)
-    train, test = values[0:size], values[size:len(values)]
-    history = [x for x in train]
+    train, test = values[0:len(values)-1], values[len(values)-1]
     predictions = list()
     #labels 0 is go down, 1 is go up
-    labels = get_labels(test)
+    previous = train[len(train)-1]
+    model = auto_arima(train)
+    print(model.get_params()["order"])
+    prediction = model.predict(1)[0]
+    classification = 0
     correct = 0
-    for t in range(len(test)):
-        # model = ARIMA(history,order=order)
-        # model_fit = model.fit(disp=False)
-        model = auto_arima(history)
-        yhat = model.forecast()[0]
-        predictions.append(yhat)
-        previous = history[len(history) - 1]
-        classification = 0
-        if yhat >= previous:
-            classifcation = 1
-        if t < len(test) - 1 and classification == labels[t]:
-            correct += 1
-        history.append(test[t])
-    percentage_correct = (1.0 * correct) / (1.0 * len(test))
-    error = mean_squared_error(test, predictions)
-    return model, percentage_correct, error
+    yes = False
+    true = 0
+    if prediction >= previous:
+        classification = 1
+    if test >= previous:
+        true = 1
+    if (classification == true):
+        correct = 1
+        yes = True
+    error = (abs(test - prediction)/prediction) * 100
+    print("Predicted: ", prediction, "Actual: ", test, "Previous: ", previous, "Percent error: ", error)
+    print("Pred label: ", classification, "True label: ", true, "Correct? ", yes)
+    return model, correct, error, true
 
-def hyperparameter_suite(values, p_values, d_values, q_values):
-    values = values.astype('float32')
-    best_score, best_score_cfg = float("inf"), None
-    best_percentage, best_percentage_cfg = 0, None
-    percentage_dict = {}
-    score_dict = {}
-    # solvers = ['lbfgs', 'bfgs', 'newton', 'nm', 'cg', 'ncg', 'powell']
-    for p in p_values:
-        for d in d_values:
-            for q in q_values:
-                order = (p, d, q)
-                print(order)
-                # for solver in solvers:
-                try:
-                    model, percentage, mse = model_eval(values, order)
-                    print(order, mse)
-                    score_dict[order] = mse
-                    percentage_dict[order] = percentage
-                    if mse < best_score:
-                        best_score_cfg, best_score_cfg = mse, order
-                    if percentage > best_percentage:
-                        best_percentage, best_percentage_cfg = percentage, order
-                except:
-                    continue
-
-    return best_score_cfg, best_percentage_cfg, score_dict, percentage_dict
 
     # model = ARIMA(series, order=(5, 1, 0))
     # model_fit = model.fit(disp=0)

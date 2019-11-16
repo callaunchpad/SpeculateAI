@@ -52,9 +52,9 @@ def train(model, input_data, validation_data, epochs, save_every, batch_size):
 	# some weight initialization/other setup required here, I think?
 	sess.run(tf.global_variables_initializer())
 
-	model.load_model(sess, "language_model")
-	start = input("Sentence to be completed: ")
-	print(f"Sample generated sentence: {generate_headline(model, token_to_index, index_to_token, sess, starter=start)}")
+	#model.load_model(sess, "language_model")
+	#start = input("Sentence to be completed: ")
+	#print(f"Sample generated sentence: {generate_headline(model, token_to_index, index_to_token, sess, starter=start)}")
 
 
 	# train the damn thing
@@ -139,7 +139,7 @@ def main():
 			# Add it to the list of headlines
 			headlines.append(headline)
 
-			if len(headlines) > 1000:
+			if len(headlines) > 5000:
 				break
 
 
@@ -160,8 +160,8 @@ def main():
 	}
 
 	model = nlpModel(hyper_parameters=model_hyperparameters)
-	# Train the model
-	train(model, train_headlines, test_headlines, 10, 1, 32)
+
+	train(model, train_headlines, test_headlines, 100, 1, 32)
 
 if __name__ == '__main__':
 	main()

@@ -163,8 +163,7 @@ class nlpModel:
         :return: None
         """
         print("Loading model...")
-
         if save_name is not None:
-            self.saver.restore(sess, "./checkpoints/" + save_name)
+            self.saver.restore(sess, "src/checkpoints/" + save_name)
         else:
             self.saver.restore(sess, "./checkpoints/saved_model")

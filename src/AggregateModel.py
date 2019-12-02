@@ -9,7 +9,7 @@ The code below expects objects of the same structure as defined in BaseModel.py
 
 class AggregateModel():
     def __init__(self, nlp_model, tsa_model, downstream_model, combination=tf.concat,
-                 combination_args=[], label_shape=[1], is_classifier=True, tsa_in_tf=True):
+                 combination_args=[0], label_shape=[1], is_classifier=True, tsa_in_tf=True):
         """
         Initializes the full computation graph such that we have a complete aggregated model
 
@@ -49,8 +49,8 @@ class AggregateModel():
             self.tsa_outputs = tsa_model.output
         else:
             # If our tsa model is a not a TF graph (e.g. logistic regression)
-            # In this case we should just treat its outputs as something we cannot backprop into    
-            self.tsa_outputs = tf.placeholder(dtype=tf.float32, shape=[None, 1])
+            # In this case we should just treat its outputs as something we cannot backprop into 
+            self.tsa_outputs = tf.placeholder(dtype=tf.float32, shape=[None, 98, 16399])
 
         # The combination of the nlp and time series outputs
         downstream_input = combination([self.nlp_outputs, self.tsa_outputs], *combination_args)
@@ -59,7 +59,7 @@ class AggregateModel():
         downstream_model.inputs = downstream_input
 
         # The output of the downstream model
-        self.model_output = downstream_model.output
+        self.downstream_output = downstream_model.output
 
         # The labels fed in for training the aggregated model
         self.model_labels = tf.placeholder(shape=[None] + label_shape, dtype=tf.float32)
@@ -70,7 +70,7 @@ class AggregateModel():
         else:
             self.loss = tf.losses.mean_squared_error(self.model_labels, self.downstream_output)
 
-
+ 
         # Setting the trainable variables for the optimizer, originally just fine tuning
         downstream_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope="DOWN")
 

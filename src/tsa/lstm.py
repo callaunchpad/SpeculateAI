@@ -5,23 +5,48 @@ import matplotlib.pyplot as plt
 from keras.models import Sequential
 from keras.layers import LSTM
 from keras.layers import Dense
+import os
 
 test_percent = 20 # Percent of data used for verification
 
-df_DJIA = pd.read_csv("../../data/DJIA_table.csv")
-split = int(len(df_DJIA["Close"]) * (1 - test_percent/100))
+# df_DJIA = pd.read_csv("../../data/DJIA_table.csv")
+# split = int(len(df_DJIA["Close"]) * (1 - test_percent/100))
 
-close = df_DJIA["Close"]
-close_train = df_DJIA["Close"][:split]
-close_test = df_DJIA["Close"][split:]
+# close = df_DJIA["Close"]
+# close_train = df_DJIA["Close"][:split]
+# close_test = df_DJIA["Close"][split:]
 
-# x = pd.read_csv("../../data/test/Data/Stocks/a-t/a.us.txt")
-# split = int(len(x["Close"]) * (1 - 20/100))
-# close_train = x["Close"][:split].reset_index(drop=True)
-# close_test = x["Close"][split:].reset_index(drop=True)
+x = pd.read_csv("../../data/test/Data/Stocks/a.us.txt")
+split = int(len(x["Close"]) * (1 - 20/100))
+close = x["Close"]
+close_train = x["Close"][:split].reset_index(drop=True)
+close_test = x["Close"][split:].reset_index(drop=True)
 
 # print(close_train)
 # print(close_test)
+
+# def get_data(directory):
+#     result = []
+
+#     for file in os.listdir(directory):
+#         if len(result) > 100:
+#             break
+#         filename = os.fsdecode(file)
+#         print(filename)
+#         if filename.endswith(".txt"):
+#             try:
+#                 x = pd.read_csv(os.fsdecode(directory) + "/" + filename)
+#                 result.append(x["Close"].reset_index(drop=True))
+#             except pd.errors.EmptyDataError:
+#                 continue
+#     return pd.concat(result)
+
+
+# train_dir = os.fsencode("../../data/test/Data/Stocks/a-t")
+# test_dir = os.fsencode("../../data/test/Data/Stocks/u-z")
+
+# close = get_data(train_dir)
+# test = get_data(test_dir)
 
 # split a univariate sequence into samples
 # n_steps is a hyperparameter, tells you how far back in time to look for prediction
@@ -102,8 +127,8 @@ def model_eval(train_data, test_data, p):
 	return accuracy
 
 
-x = list(range(60, 100, 10))
-plt.plot(x, [model_eval(close_train, close_test, [param]) for param in x], color='green')
+r = list(range(5, 15))
+plt.plot(r, [model_eval(close_train, close_test, [param]) for param in r], color='green')
 plt.xlabel("n_steps")
 plt.ylabel("Accuracy (%)")
 plt.show()

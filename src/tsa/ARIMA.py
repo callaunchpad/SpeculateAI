@@ -20,8 +20,6 @@ def main():
     # print("Percentage when market went up: ", percentage_up, "Total error: ", error_up)
     # print("Percentage when market went down: ", percentage_down, "Total error: ", error_down)
 
-
-
 #Reads the entire stocks dataset into a dictionary with key: stock name, value: values array
 def read_entire_market():
     stock_path = "../../data/Stocks/"
@@ -31,13 +29,25 @@ def read_entire_market():
     for filename in all_stocks:
         count += 1
         try:
-            stock = pd.read_table(filename.replace(".us.txt", ""), delimiter=',', header=0, index_col=0)
+            stock = pd.read_table(filename, delimiter=',', header=0, index_col=0)
             data = list(reversed(stock["Close"].values))
-            stock_dict[filename] = data
+            stock_dict[filename.replace(".us.txt", "")] = data
         except:
             continue
     print("count", count)
     return stock_dict
+
+#Saving a single model
+def save_model(model, stock_name):
+    filename = "arima_models/" + stock_name + ".sav"
+    pickle.dump(model, open(filename, 'wb'))
+
+#Loading a single model
+def load_model(stock_name):
+    filename = "arima_models/" + stock_name + ".sav"
+    model = pickle.load(open(filename, 'rb'))
+    return model
+
 #Loop to save all the arima models for each stock in the Stocks dataset
 def save_all_models(stock_dict):
     for stock in stock_dict:
@@ -45,6 +55,7 @@ def save_all_models(stock_dict):
             series = stock_dict[stock]
             model = auto_arima(series[:len(series -1)], disp=-1, suppress_warnings=True)
             save_model(model, stock)
+            print("Model for ", stock, " saved")
         except:
             print("Error in saving model for stock: ", stock)
             continue
@@ -146,18 +157,6 @@ def projection_test(values):
     plt.plot(test)
     plt.plot(prediction)
     plt.show()
-
-#Test for saving a single model
-def save_model(model, stock_name):
-    filename = "arima_models/" + stock_name + ".sav"
-    pickle.dump(model, open(filename, 'wb'))
-
-#Test for loading a single model
-def load_model(stock_name):
-    filename = "arima_models/" + stock_name + ".sav"
-    model = pickle.load(open(filename, 'rb'))
-    return model
-
 
 #Computes first order differencing of a series
 def difference(dataset, interval=1):

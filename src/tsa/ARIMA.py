@@ -31,7 +31,7 @@ def read_entire_market():
         try:
             stock = pd.read_table(filename, delimiter=',', header=0, index_col=0)
             data = list(reversed(stock["Close"].values))
-            stock_dict[filename.replace(".us.txt", "")] = data
+            stock_dict[filename.replace("../../data/Stocks/", "").replace(".us.txt", "")] = data
         except:
             continue
     print("count", count)
@@ -53,9 +53,9 @@ def save_all_models(stock_dict):
     for stock in stock_dict:
         try:
             series = stock_dict[stock]
-            model = auto_arima(series[:len(series -1)], disp=-1, suppress_warnings=True)
+            model = auto_arima(series[:len(series)-1], disp=-1, suppress_warnings=True)
             save_model(model, stock)
-            print("Model for ", stock, " saved")
+            print("Model for", stock, "saved")
         except:
             print("Error in saving model for stock: ", stock)
             continue

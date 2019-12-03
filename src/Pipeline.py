@@ -30,7 +30,6 @@ def label(arr, words_list):
     # Plus one for the END character
     all_vecs = np.eye(len(words_list) + 1)
     label_words = arr[1:]
-    print(label_words)
     labels = [words_list.index(word) for word in label_words]
     masks = [0 if word in ["PAD", "END"] else 1 for word in label_words]
     return labels, masks

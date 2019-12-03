@@ -32,7 +32,7 @@ class DownstreamModel():
 			self.inputs = tf.placeholder(tf.float32, shape=(None, 30))		
 			dense1 = tf.layers.dense(self.inputs, 20, name="Dense1")
 			dense2 = tf.layers.dense(dense1, 10, name="Dense2")
-			self.output = tf.layers.dense(dense2, 2, name="Output")
+			self.output = tf.layers.dense(dense2, 98, name="Output")
 
 
 
@@ -77,6 +77,9 @@ def train(input_data, validation_data, epochs, save_every, batch_size):
 	# validation_data = [tokenized_to_numerized(words, token_to_index)[:-1] for words in tokenized]
 	# validation_labels, validation_masks = list(zip(*[label(words, index_to_token) for words in tokenized]))
 
+	# downstream model
+	downstream_model = DownstreamModel()
+	
 	sess = tf.Session()
 
 	sess.run(tf.global_variables_initializer())
@@ -88,12 +91,9 @@ def train(input_data, validation_data, epochs, save_every, batch_size):
 
 	# fake tsa model
 	tsa_model = lambda x: None
-	tsa_callback = lambda x : None
+	tsa_callback = lambda x : x
 
-	# downstream model
-	downstream_model = DownstreamModel()
-
-	model = AggregateModel(nlp_model=nlp_model, tsa_model=tsa_model, downstream_model=downstream_model, tsa_in_tf=False, label_shape=[2])
+	model = AggregateModel(nlp_model=nlp_model, tsa_model=tsa_model, downstream_model=downstream_model, tsa_in_tf=False, label_shape=[98])
 
 	# train the damn thing
 	print(f"Training model on {num_batches} batches for {epochs} epochs...")

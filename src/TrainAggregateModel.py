@@ -78,7 +78,7 @@ def train(input_data, validation_data, epochs, save_every, batch_size):
 
 	# fake tsa model
 	tsa_model = lambda x: None
-	tsa_callback = lambda x : x
+	tsa_callback = lambda x : [[0]]
 
 
 	model = AggregateModel(nlp_model=nlp_model, tsa_model=tsa_model, tsa_in_tf=False)

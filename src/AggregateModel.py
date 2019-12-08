@@ -1,5 +1,7 @@
 import tensorflow as tf
 
+LEARNING_RATE = 1e-3
+
 """
 This code defines how we aggregate natural language, time series, and output graphs
 into a single, cohesive computation graph.
@@ -71,6 +73,11 @@ class AggregateModel():
         # Setting the trainable variables for the optimizer, originally just fine tuning
         downstream_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope="DOWN")
 
+        # Set exponential decay on learning rate
+        lr = LEARNING_RATE
+        self.global_step = tf.Variable(0, trainable=False)
+        self.learning_rate = tf.train.exponential_decay(lr, self.global_step, 500, 0.983)
+
         # The training operation called to perform a gradient step
         self.train_op = tf.train.AdamOptimizer().minimize(self.loss, var_list=downstream_vars)
 
@@ -117,7 +124,7 @@ class AggregateModel():
                 self.model_labels: labels
             }
 
-            loss_value, _ = sess.run([self.loss, self.train_op], feed_dict=feed_dict)
+            loss_value, step, _ = sess.run([self.loss, self.global_step, self.train_op], feed_dict=feed_dict)
 
         else:
             feed_dict = {
@@ -126,9 +133,9 @@ class AggregateModel():
                 self.model_labels: labels
             }
 
-            loss_value, _ = sess.run([self.loss, self.train_op], feed_dict=feed_dict)
+            loss_value, step, _ = sess.run([self.loss, self.global_step, self.train_op], feed_dict=feed_dict)
 
-        return loss_value
+        return loss_value, step
 
     def get_loss(self, nlp_inputs, tsa_inputs, labels, sess, tsa_callback=None):
         """

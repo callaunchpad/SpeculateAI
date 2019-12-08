@@ -26,15 +26,6 @@ import numpy as np
 
 """
 
-class DownstreamModel():
-	def __init__(self, label_shape=98):
-		with tf.variable_scope("DOWN"):
-			self.inputs = tf.constant(4, shape=[1, 98])		
-			dense1 = tf.layers.dense(self.inputs, 200, name="Dense1")
-			dense2 = tf.layers.dense(dense1, 100, name="Dense2")
-			self.output = tf.layers.dense(dense2, 98, name="Output")
-
-
 
 def train(input_data, validation_data, epochs, save_every, batch_size):
 	"""
@@ -50,7 +41,7 @@ def train(input_data, validation_data, epochs, save_every, batch_size):
 	"""
 
 	# Build a map from token to index
-	with open("src/vocabulary.txt", 'r') as vocab_file:
+	with open("vocabulary.txt", 'r') as vocab_file:
 		index_to_token = vocab_file.read().split("\n")
 
 	token_to_index = {word: index for index, word in enumerate(index_to_token)}
@@ -89,12 +80,14 @@ def train(input_data, validation_data, epochs, save_every, batch_size):
 	tsa_model = lambda x: None
 	tsa_callback = lambda x : x
 
-	# downstream model
-	downstream_model = DownstreamModel()
 
-	model = AggregateModel(nlp_model=nlp_model, tsa_model=tsa_model, downstream_model=downstream_model, tsa_in_tf=False, label_shape=[98])
+	model = AggregateModel(nlp_model=nlp_model, tsa_model=tsa_model, tsa_in_tf=False)
 
 	sess.run(tf.global_variables_initializer())
+
+	writer = tf.summary.FileWriter("./graphs", sess.graph)
+
+	print("GRAPH WRITTEN")
 
 	# train the damn thing
 	print(f"Training model on {num_batches} batches for {epochs} epochs...")
@@ -106,7 +99,7 @@ def train(input_data, validation_data, epochs, save_every, batch_size):
 
 		# Loop over batches
 		for i in range(num_batches):
-			loss_value, step = model.train_step(data_batches[i], label_batches[i], label_mask_batches[i], sess, tsa_callback)
+			loss_value, step = model.train_step(data_batches[i], [[1], [2], [3], [4]], [[2], [3], [4], [5]], sess, tsa_callback)
 			epoch_loss += loss_value
 			print(f"Loss on training step {step}: {loss_value}")
 
@@ -128,6 +121,7 @@ def main():
 	# Get the data
 	train_headlines = ["millennials scare stick", "hyam exdivs lottery waterproof", "exdivs lottery kalvista"]
 	test_headlines = ["millennials scare stick", "hyam exdivs lottery waterproof", "exdivs lottery kalvista"]
+	time_series_inputs = [[1,2,3,4,5]]
 	
 	train(train_headlines, test_headlines, 100, 1, 1)
 

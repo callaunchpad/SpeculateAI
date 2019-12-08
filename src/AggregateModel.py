@@ -8,8 +8,8 @@ The code below expects objects of the same structure as defined in BaseModel.py
 """
 
 class AggregateModel():
-    def __init__(self, nlp_model, tsa_model, downstream_model, combination=tf.concat,
-                 combination_args=[1], label_shape=[1], is_classifier=True, tsa_in_tf=True):
+    def __init__(self, nlp_model, tsa_model, combination=tf.concat,
+                 combination_args=[1], label_shape=[1], is_classifier=False, tsa_in_tf=True):
         """
         Initializes the full computation graph such that we have a complete aggregated model
 
@@ -24,9 +24,9 @@ class AggregateModel():
         """
 
         self.is_classifier = is_classifier
-        self.combine_models(nlp_model, tsa_model, downstream_model, combination, combination_args, label_shape, tsa_in_tf)
+        self.combine_models(nlp_model, tsa_model, combination, combination_args, label_shape, tsa_in_tf)
 
-    def combine_models(self, nlp_model, tsa_model, downstream_model, combination, combination_args, label_shape, tsa_in_tf):
+    def combine_models(self, nlp_model, tsa_model, combination, combination_args, label_shape, tsa_in_tf):
         """
         Builds the computation graph by connecting the component graphs in the appropriate manner
 
@@ -50,16 +50,13 @@ class AggregateModel():
         else:
             # If our tsa model is a not a TF graph (e.g. logistic regression)
             # In this case we should just treat its outputs as something we cannot backprop into 
-            self.tsa_outputs = tf.placeholder(dtype=tf.float32, shape=[1 , None], name="tsa_outputs")
+            self.tsa_outputs = tf.placeholder(dtype=tf.float32, shape=[None, 1], name="tsa_outputs")
 
         # The combination of the nlp and time series outputs
-        downstream_input = combination([self.nlp_outputs, self.tsa_outputs], *combination_args)
-
-        # The input the downstream model
-        downstream_model.inputs = downstream_input
+        downstream_input = combination([self.nlp_outputs, self.tsa_outputs], *combination_args, name="Downstream_Inputs")
 
         # The output of the downstream model
-        self.downstream_output = downstream_model.output
+        self.downstream_output = self.construct_downstream_model(downstream_input)
 
         # The labels fed in for training the aggregated model
         self.model_labels = tf.placeholder(shape=[None] + label_shape, dtype=tf.float32, name="model_labels")
@@ -76,6 +73,24 @@ class AggregateModel():
 
         # The training operation called to perform a gradient step
         self.train_op = tf.train.AdamOptimizer().minimize(self.loss, var_list=downstream_vars)
+
+    def construct_downstream_model(self, input_tensor):
+        """
+        Constructs a downstream model that takes in the input tensor and returns the output tensor
+        :param input_tensor: The input tensor the downstream model will recieve
+        :return: out_tensor: A tensor resulting from passing the input through the specified downstream model
+        """
+        with tf.variable_scope("DOWN"):
+            output = tf.layers.dense(input_tensor, 128)
+            output = tf.layers.dense(output, 128)
+
+            # Check for classifier or regressor
+            if self.is_classifier:
+                output = tf.layers.dense(output, 2)
+            else:
+                output = tf.layers.dense(output, 1)
+
+        return output
 
 
     def train_step(self, nlp_inputs, tsa_inputs, labels, sess, tsa_callback=None):

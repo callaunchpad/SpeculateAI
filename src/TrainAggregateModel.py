@@ -27,11 +27,11 @@ import numpy as np
 """
 
 class DownstreamModel():
-	def __init__(self):
+	def __init__(self, label_shape=98):
 		with tf.variable_scope("DOWN"):
-			self.inputs = tf.placeholder(tf.float32, shape=(None, 30))		
-			dense1 = tf.layers.dense(self.inputs, 20, name="Dense1")
-			dense2 = tf.layers.dense(dense1, 10, name="Dense2")
+			self.inputs = tf.constant(4, shape=[1, 98])		
+			dense1 = tf.layers.dense(self.inputs, 200, name="Dense1")
+			dense2 = tf.layers.dense(dense1, 100, name="Dense2")
 			self.output = tf.layers.dense(dense2, 98, name="Output")
 
 
@@ -49,7 +49,7 @@ def train(input_data, validation_data, epochs, save_every, batch_size):
 	:return: a list of average training loss per epoch
 	"""
 
-# Build a map from token to index
+	# Build a map from token to index
 	with open("src/vocabulary.txt", 'r') as vocab_file:
 		index_to_token = vocab_file.read().split("\n")
 
@@ -77,12 +77,8 @@ def train(input_data, validation_data, epochs, save_every, batch_size):
 	# validation_data = [tokenized_to_numerized(words, token_to_index)[:-1] for words in tokenized]
 	# validation_labels, validation_masks = list(zip(*[label(words, index_to_token) for words in tokenized]))
 
-	# downstream model
-	downstream_model = DownstreamModel()
-	
 	sess = tf.Session()
 
-	sess.run(tf.global_variables_initializer())
     
 	# load nlp model
 	nlp_model_hyperparameters = {'input_length': 100, 'vocab_size': 16399, 'rnn_size': 256, 'learning_rate': 1e-4, 'embedding_size': 300}
@@ -93,7 +89,12 @@ def train(input_data, validation_data, epochs, save_every, batch_size):
 	tsa_model = lambda x: None
 	tsa_callback = lambda x : x
 
+	# downstream model
+	downstream_model = DownstreamModel()
+
 	model = AggregateModel(nlp_model=nlp_model, tsa_model=tsa_model, downstream_model=downstream_model, tsa_in_tf=False, label_shape=[98])
+
+	sess.run(tf.global_variables_initializer())
 
 	# train the damn thing
 	print(f"Training model on {num_batches} batches for {epochs} epochs...")

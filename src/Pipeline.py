@@ -99,3 +99,18 @@ def tokenized_to_numerized(tokenized_seq, dictionary):
             numerized_seq.append(dictionary['UNK'])
 
     return numerized_seq
+
+def combine_headlines(headlines):
+    """
+    Combines headlines into one string with END tokens in between
+    :param headlines: The list of headlines we wish to look at
+    :return: Input_Str: the string we will input to the NLP model
+    """
+    output_str = ""
+
+    for headline in headlines[:-1]:
+        output_str += clean_headline(headline) + " END "
+
+    output_str += clean_headline(headlines[-1])
+
+    return output_str

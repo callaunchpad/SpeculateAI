@@ -85,10 +85,6 @@ def train(input_data, validation_data, epochs, save_every, batch_size):
 
 	sess.run(tf.global_variables_initializer())
 
-	writer = tf.summary.FileWriter("./graphs", sess.graph)
-
-	print("GRAPH WRITTEN")
-
 	# train the damn thing
 	print(f"Training model on {num_batches} batches for {epochs} epochs...")
 	for epoch in range(epochs):

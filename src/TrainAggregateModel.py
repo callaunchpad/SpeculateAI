@@ -6,26 +6,6 @@ import glob
 import json
 import numpy as np
 
-"""
-	Notes to self:
-		current error: ValueError: Cannot feed value of shape () for Tensor 'Placeholder:0', which has shape '(?, 98, 16399)'
-		fake lambda function for tsa model isn't working because it returns x which is the wrong size
-		changed the shape of self.tsa_outputs in combine models because the other dimensions weren't working, 
-		which is why it wants shape (?, 98, 16399)
-
-		not sure how to fix this -- should probably actually put in a tsa model and then do it
-		everything else should work ? not sure what data is being passed in and how the aggregation is actually supposed to work
-
-
-		misc:
-			tf.concat needs the argument axis so it knows which dimension to concatenate the arrays on -- i put zero as the default not sure what its supposed to be
-			just put in a couple random sentences to see if it was working but for the most part the data processing is the same
-			commented out save model stuff
-
-		basically just fixed some syntax errors and made a downstream model
-
-"""
-
 
 def train(input_data, validation_data, epochs, save_every, batch_size):
 	"""

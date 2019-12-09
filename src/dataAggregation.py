@@ -2,6 +2,9 @@ import csv
 import glob
 import datetime 
 import json
+import os
+import pandas as pd
+import numpy as np
 
 STOCK_PATH = "data/SOMETHING"
 ETF_PATH = "data/small_financial_news"
@@ -20,20 +23,19 @@ def getETF(date):
 					stockData.append(row)
 	return stockData
 
-def getStock(date):
+def getStock(date, stock_name):
 	"""Takes in a date (str) and outputs corresponding data array for all Stocks"""
 
-	path = "./data/Stocks/*.txt"
-	files = glob.glob(path)
-	stockData = []
-	for file in files:
-		with open(file) as f:
-			csv_reader = csv.reader(f, delimiter = ",")
-			for row in csv_reader:
-				if row[0] == date:
-					stockData.append(row)
+	path = "../data/Stocks/" + stock_name + ".txt"
 
-	return stockData
+	if not os.path.exists(path):
+		raise NotADirectoryError()
+
+	# Grab the time series
+	stock_data = pd.read_csv(path)
+	stock_data = stock_data[stock_data['Date'] < date]
+
+	return np.array(stock_data)
 
 
 def getETF1(date, name):
@@ -121,7 +123,7 @@ def getETF5(initialDate, name, category, days):
 
 
 
-def getNewsData(date):
+def getNewsData(date, max_num=20):
 	"""Takes in an initial date (str), outputs news headline on that date"""
 	path = "data/financial_news_data/*.json"
 	files = glob.glob(path)
@@ -133,8 +135,7 @@ def getNewsData(date):
 		if date == blogDate:
 			headlines.append(json_decode["title"])
 
-	#print(headlines)
-	return headlines
+	return headlines[:max_num]
 
 
 def getNewsData3(initialDate, category, days):
@@ -224,10 +225,5 @@ def aggregate(initialDate, name, categoryData, categoryNews, days):
 	return aggregate
 
 
-#getETF5("2012-11-09", "acim", 1, 4)
-#getNewsData3("2018-01-03", "text", 3)
-# aggregate("2015-07-28", "acim", 1, "title", 2)
-a = getNewsData("2015-07-29")
-print(a)
 
-a = getStock("2015-07-29")
+a = getStock("2015-07-29", "aat.us")

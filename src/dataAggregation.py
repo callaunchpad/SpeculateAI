@@ -33,7 +33,7 @@ def getStock(date, stock_name):
 
 	# Grab the time series
 	stock_data = pd.read_csv(path)
-	stock_data = stock_data[stock_data['Date'] < date]
+	stock_data = stock_data[stock_data['Date'] <= date]
 
 	return np.array(stock_data)
 
@@ -227,3 +227,4 @@ def aggregate(initialDate, name, categoryData, categoryNews, days):
 
 
 a = getStock("2015-07-29", "aat.us")
+print(a)

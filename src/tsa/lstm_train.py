@@ -1,11 +1,12 @@
-import tensorflow as tf 
-#from Pipeline import *
-from lstm_regress import lstmTSAModel
 from models import *
-import glob
-import json
+from numpy import array
+from lstm_regress import lstmTSAModel
+import tensorflow as tf 
 import numpy as np
+import matplotlib.pyplot as plt
 import os
+
+n_steps = 20
 
 def split_sequence(sequence, n_steps): 
 	X, y = list(), list()
@@ -17,11 +18,17 @@ def split_sequence(sequence, n_steps):
 			break
 		# gather input and output parts of the pattern
 		seq_x = sequence[i:end_ix]
-		seq_y = [1, 0] # fall
-		if seq_x[end_ix-1] > seq_x[end_ix-2]:
-			seq_y = [0, 1] # rise
+
+		# for regression:
+		seq_y = [seq_x[end_ix-1]]
+
+		# for classification:
+		# seq_y = [1, 0] # fall
+		# if seq_x[end_ix-1] > seq_x[end_ix-2]:
+		# 	seq_y = [0, 1] # rise
+
 		X.append(seq_x) 
-		y.append(seq_y) # want this to be 1 or 0, might need to one-hot encode your label [fall, rise]
+		y.append(seq_y) # if classification: want this to be 1 or 0, might need to one-hot encode your label [fall, rise]
 	return array(X), array(y)
 
 
@@ -37,20 +44,14 @@ def train(model, input_data, validation_data, epochs, save_every, batch_size):
 	:return: a list of average training loss per epoch
 	"""
 
-	# # Build a map from token to index
-	# with open("./vocabulary.txt", 'r') as vocab_file:
-	# 	index_to_token = vocab_file.read().split("\n")
-
-	# token_to_index = {word: index for index, word in enumerate(index_to_token)}
-
 	avg_losses = []
 
 	# tokenize, vectorize, and batch data
 	data_batches, label_batches = [], []
 
-	#split sequence run here
-	#start splicing
-	#for loop is indexing into big X return of split_sequence
+	# split sequence run here
+	# start splicing
+	# for loop is indexing into big X return of split_sequence
 	X, y = split_sequence(input_data, n_steps)
 
 	for i in range(len(X) // batch_size):
@@ -69,6 +70,8 @@ def train(model, input_data, validation_data, epochs, save_every, batch_size):
 		#label_mask_batches.append(batch_masks)
 
 	num_batches = len(data_batches)
+	#print(np.array(data_batches[0]).shape)
+	#print(num_batches)
 
 	# Preprocess the validation data as well
 	validation_data, validation_labels = split_sequence(validation_data, n_steps)
@@ -81,11 +84,6 @@ def train(model, input_data, validation_data, epochs, save_every, batch_size):
 	# some weight initialization/other setup required here, I think?
 	sess.run(tf.global_variables_initializer())
 
-	#model.load_model(sess, "language_model")
-	#start = input("Sentence to be completed: ")
-	#print(f"Sample generated sentence: {generate_headline(model, token_to_index, index_to_token, sess, starter=start)}")
-
-
 	# train the damn thing
 	print(f"Training model on {num_batches} batches for {epochs} epochs...")
 	for epoch in range(epochs):
@@ -95,101 +93,77 @@ def train(model, input_data, validation_data, epochs, save_every, batch_size):
 		epoch_loss = 0
 
 		# Loop over batches
+		# print("before train_step!!!")
 		for i in range(num_batches):
-			loss_value, step = model.train_step(data_batches[i], label_batches[i], sess)
+			#print(data_batches[i])
+			#print(np.array(data_batches[i]).shape)
+			loss_value, step = model.train_step(np.array(data_batches[i]), np.array(label_batches[i]), sess)
 			epoch_loss += loss_value
 			print(f"Loss on training step {step}: {loss_value}")
 
 		print(f"Training Loss: {epoch_loss / num_batches}")
 		print(f"Validation Loss: {model.get_loss(validation_data, validation_labels, sess)}")
-		#print(f"Sample generated sentence: {generate_headline(model, token_to_index, index_to_token, sess)}")
 
 		# Add the average loss on this epoch to the average losses list
 		avg_losses.append(epoch_loss / num_batches)
 
 		if (epoch + 1) % save_every == 0:
 			# Save the model every <save_every> epochs
-			model.save_model(sess, "language_model")
+			model.save_model(sess, "lstm_tsa_model")
 
 		print("===============")
 
+	# model.load_model(sess, "lstm_tsa_model")
+
+	# calculate model accuracy
+	correct = 0
+	outputs_list = []
+	labels_list = []
+	for i in range(num_batches):
+		outputs = model.predict(data_batches[i], sess)
+		for j in range(len(outputs)):
+			print("=========================================================")
+			output_value = outputs[j][0][0]
+			label_value = label_batches[i][j][0]
+			print(output_value)
+			print(label_value)
+			outputs_list.append(output_value)
+			labels_list.append(label_value)
+			if output_value == label_value:
+				correct += 1
+	accuracy = (1.0 * correct)/ (1.0 * num_batches * len(data_batches[i]))
+	print(f"n_steps: {n_steps}")
+	print(f"Model accuracy: " + str(accuracy) + "%")
+
+	# plot data
+	r = list(range(num_batches * len(data_batches[i])))
+	predicted_price, = plt.plot(r, outputs_list, color='green', label="predicted price")
+	actual_price, = plt.plot(r, labels_list, color='red', label="actual price")
+	plt.legend([predicted_price, actual_price], ["predicted price", "actual price"])
+	plt.xlabel("Training Time Steps")
+	plt.ylabel("Closing Prices")
+	plt.show()
+
 	return avg_losses
-
-# def generate_headline(model, token_to_num, num_to_token, session, length=20, lstm_length=100, starter=""):
-# 	"""
-# 	Generates a headline to test the model using the starter sentence
-# 	:param model: The model to use for language modeling
-# 	:param token_to_num: A mapping from tokens to numeric values
-# 	:param num_to_token: A mapping from numerized values to tokens
-# 	:param starter: The start of the sentence we would like to complete
-# 	:return: A generated sentence
-# 	"""
-
-# 	# Tokenize the starter input
-# 	tokenized = starter.split(" ") if starter != "" else []
-
-# 	# Numerize this starter
-# 	current_sentence = [token_to_num["START"]] + tokenized_to_numerized(tokenized, token_to_num)
-
-# 	while len(current_sentence) < length:
-# 		# Pad the input for the LSTM
-# 		padded_input = current_sentence[:length] + [token_to_num["PAD"]] * (lstm_length - len(current_sentence) - 2)
-# 		padded_input = np.reshape(np.array(padded_input), (1, -1))
-
-# 		# Run the model on this padded input to predict the next value
-# 		model_logits = model.predict(padded_input, session)
-# 		model_logits = np.squeeze(model_logits) # Remove extraneous dimensions
-
-# 		# Find the logits for the appropriate input
-# 		next_token_logits = model_logits[len(current_sentence) - 1, :]
-# 		next_token_logits[current_sentence[-1]] = float('-inf')
-
-# 		# Append the argmax token to the current sentence
-# 		current_sentence.append(np.argmax(next_token_logits))
-
-
-# 	# Put the sentence together
-# 	return " ".join([num_to_token[numeric] for numeric in current_sentence])
 
 def main():
 	# Get the data
-	# test_percent = 20 # Percent of data used for verification
-
 	x = pd.read_csv("../../data/test/Data/Stocks/a.us.txt")
 	split = int(len(x["Close"]) * (1 - 20/100))
 	close = x["Close"]
 	close_train = x["Close"][:split].reset_index(drop=True)
 	close_test = x["Close"][split:].reset_index(drop=True)
 
-	# close = []
-
-	# json_files = glob.glob("../data/small_financial_news/*.json")
-
-	# for json_file in json_files:
-	# 	# Open the json file and pull the headline
-	# 	with open(json_file, encoding='utf-8') as file:
-	# 		# Load the title string into headline
-	# 		headline = json.loads(file.read())['title']
-	# 		# Clean the headline
-	# 		headline = clean_headline(headline)
-	# 		# Add it to the list of close
-	# 		close.append(headline)
-
-	# 		if len(close) > 5000:
-	# 			break
-
-
 	print(f"Loaded {len(close)} close...")
 	# Split the data into train and validation
 	train_percentage = 0.8
 
-	train_close = close[:int(train_percentage * len(close))]
-	test_close = close[int(train_percentage * len(close)):]
+	train_close = close[:int(train_percentage * len(close))].reset_index(drop=True)
+	test_close = close[int(train_percentage * len(close)):].reset_index(drop=True)
 
 	# Build the model
 	model_hyperparameters = {
-		'n_steps': 5,
-		'input_length': 100,
+		'input_length': n_steps,
 		'rnn_size': 256,
 		'learning_rate': 1e-4,
 		'forecast_horizon': 1
@@ -197,7 +171,8 @@ def main():
 
 	model = lstmTSAModel(hyper_parameters=model_hyperparameters)
 
-	train(model, train_close, test_close, 100, 1, 32)
+	avg_losses = train(model, train_close, test_close, 100, 1, 32)
+	print(avg_losses)
 
 if __name__ == '__main__':
 	main()

@@ -11,8 +11,7 @@ class lstmTSAModel:
         """
         Sets up any hyper-parameters that we may need for the model and builds the graph
         Hyper Parameters:
-            n_steps
-            input_length
+            input_length (n_steps)
             rnn_size
             learning_rate
             forecast_horizon
@@ -39,29 +38,32 @@ class lstmTSAModel:
         """
 
         with tf.variable_scope(scope):
-            self.n_steps = hyper_parameters['n_steps']
             #self.num_hidden_layers = hyper_parameters['num_hidden_layers']
-            self.input_length = hyper_parameters['input_length'] - 2 
+            self.input_length = hyper_parameters['input_length']
             self.rnn_size = hyper_parameters['rnn_size']
             self.learning_rate = hyper_parameters['learning_rate']
-            self.forecast_horizon = hyper_parameters['forecast_horizon'] #set this to 1
+            self.forecast_horizon = hyper_parameters['forecast_horizon'] # set this to 1
             
             self.inputs = tf.placeholder(tf.int32, shape=[None, self.input_length])
-            self.labels = tf.placeholder(tf.float32, shape=[None, self.input_length])
+            self.labels = tf.placeholder(tf.float32, shape=[None, self.forecast_horizon]) # 2 bc for classification, 1 bc for regression
 
-            num_cells = 2 #potential hyperparameter
+            num_cells = 1 # potential hyperparameter
             
             cells = [tf.nn.rnn_cell.LSTMCell(hyper_parameters['rnn_size']) for _ in range(num_cells)]
             multi_cell = tf.nn.rnn_cell.MultiRNNCell(cells)
 
             lm_cell = tf.nn.rnn_cell.DropoutWrapper(multi_cell, output_keep_prob=0.5)
+
+            # batch of time series, and each times serives are a vector, pad it with an extra dim, tf.expand_dim (append to the end)
+            input_extra_dim = tf.cast(tf.expand_dims(self.inputs, 1), tf.float32)
+
+            rnn_out, self.out_states = tf.nn.dynamic_rnn(lm_cell, inputs=input_extra_dim, dtype=tf.float32) #inputs needs to be 3D???
             
-            rnn_out, self.out_states = tf.nn.dynamic_rnn(lm_cell, inputs=self.inputs, dtype=tf.float32) #inputs needs to be 3D???
-            
-            # output is how many values you're regressing on (it's on the closing price)
+            # output is how many values you're regressing on (it's on the closing price) 
             self.output = tf.layers.dense(rnn_out, self.forecast_horizon, name="Output_Projection")
 
-            self.loss = tf.keras.losses.MSE(tf.cast(self.labels, tf.int32), self.output)
+            self.loss = tf.keras.losses.MSE(self.labels, self.output) # loss for regression
+            #self.loss = tf.keras.losses.categorical_crossentropy(self.labels, self.output) # loss for classification
 
             self.global_step = tf.Variable(0, trainable=False)
             self.learning_rate = tf.train.exponential_decay(self.learning_rate, self.global_step, 500, 0.983)

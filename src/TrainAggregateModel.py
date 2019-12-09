@@ -12,7 +12,7 @@ def train(input_data, validation_data, epochs, save_every, batch_size):
 	Trains the model on the given input data for a number of epochs, with options to control batch sizes and how often to save.
 
 	:param model: The model to train on, using the API in BaseModel
-	:param input_data: The input data in the form of news headlines
+	:param input_data: The input data in the form of dates for each timeseries prediction
 	:param epochs: The number of epochs to train for
 	:param save_every: The frequency (in epochs) with which to save the model by calling model.save_model()
 	:param batch_size: The batch size with which to train the model
@@ -21,32 +21,55 @@ def train(input_data, validation_data, epochs, save_every, batch_size):
 	"""
 
 	# Build a map from token to index
-	# with open("vocabulary.txt", 'r') as vocab_file:
-	# 	index_to_token = vocab_file.read().split("\n")
-
+	with open("vocabulary.txt", 'r') as vocab_file:
+		index_to_token = vocab_file.read().split("\n")
 	
-	arr = getNewsData("2015-07-29")
-	merge_headlines(arr)
-
-
 	token_to_index = {word: index for index, word in enumerate(index_to_token)}
 
+	nlp_input = []
+	tsa_input = []
+	for d in input_data:
+		headlines = getNewsData(d)
+		nlp_input += [merge_headlines(headlines)]
+
+		# unsure if should be an array here
+		tsa_input += [getStock(d, "aa.us")]
+
+	
 	avg_losses = []
 
 	# tokenize, vectorize, and batch data
-	data_batches, label_batches, label_mask_batches = [], [], []
+	nlp_data_batches, tsa_data_batches, label_batches = [], [], []
 
-	for i in range(len(input_data) // batch_size):
-		end_index = min(len(input_data), (i + 1) * batch_size)
-		tokenized = [tokenize(headline) for headline in input_data[i * batch_size:end_index]]
+
+	if (len(nlp_input) != len(tsa_input)):
+		print("the inputs should be the same size")
+
+
+	# length of each headline
+	headline_len = 100
+
+	# process the nlp data
+	# this should work
+	for i in range(len(nlp_input) // batch_size):
+		end_index = min(len(nlp_input), (i + 1) * batch_size)
+		tokenized = [tokenize(headline, arr_len=headline_len) for headline in nlp_input[i * batch_size:end_index]]
 		data = [tokenized_to_numerized(words, token_to_index)[:-1] for words in tokenized]
-		labels = [label(words, index_to_token) for words in tokenized]
-		data_batches.append(data)
-		batch_labels, batch_masks = list(zip(*labels))
-		label_batches.append(batch_labels)
-		label_mask_batches.append(batch_masks)
+		nlp_data_batches.append(data)
 
-	num_batches = len(data_batches)
+		# process the tsa data
+		tsa_in = tsa_input[i * batch_size:end_index]
+		tsa_data_batches.append(tsa_in)
+
+		batch_labels = [t[:-1] for t in tsa_in]
+		label_batches.append(batch_labels)
+
+	
+	if (len(nlp_data_batches) != len(tsa_data_batches)):
+		print("the data batches should be the same size")
+
+
+	num_batches = len(nlp_data_batches)
 
 	# # Preprocess the validation data as well
 	# tokenized = [tokenize(headline) for headline in validation_data]
@@ -80,7 +103,7 @@ def train(input_data, validation_data, epochs, save_every, batch_size):
 
 		# Loop over batches
 		for i in range(num_batches):
-			loss_value, step = model.train_step(data_batches[i], [[1], [2], [3], [4]], [[2], [3], [4], [5]], sess, tsa_callback)
+			loss_value, step = model.train_step(nlp_data_batches[i], tsa_data_batches[i], label_batches[i], sess, tsa_callback=tsa_callback)
 			epoch_loss += loss_value
 			print(f"Loss on training step {step}: {loss_value}")
 
@@ -100,11 +123,18 @@ def train(input_data, validation_data, epochs, save_every, batch_size):
 
 def main():
 	# Get the data
-	train_headlines = ["millennials scare stick", "hyam exdivs lottery waterproof", "exdivs lottery kalvista"]
-	test_headlines = ["millennials scare stick", "hyam exdivs lottery waterproof", "exdivs lottery kalvista"]
-	time_series_inputs = [[1,2,3,4,5]]
+	# train_headlines = ["millennials scare stick", "hyam exdivs lottery waterproof", "exdivs lottery kalvista"]
+	# test_headlines = ["millennials scare stick", "hyam exdivs lottery waterproof", "exdivs lottery kalvista"]
+	# time_series_inputs = [[1,2,3,4,5]]
 	
-	train(train_headlines, test_headlines, 100, 1, 1)
+	train_dates = ["2015-07-29", "2015-07-30"]
+	test_dates = ["2015-07-29", "2015-07-23"]
+
+	epochs = 100
+	save_every = 10
+	batch_size = 32
+
+	train(train_dates, test_dates, epochs, save_every, batch_size)
 
 if __name__ == '__main__':
 	main()

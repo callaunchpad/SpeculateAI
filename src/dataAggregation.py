@@ -118,7 +118,6 @@ def getETF5(initialDate, name, category, days):
 				for row in csv_reader:
 					if row[0] in dates:
 						stockData.append(row[category])
-	#print(stockData)
 	return stockData
 
 

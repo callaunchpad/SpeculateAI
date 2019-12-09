@@ -2,6 +2,9 @@ import tensorflow as tf
 from Pipeline import *
 from AggregateModel import AggregateModel
 from LSTMLanguageModel import nlpModel
+from dataAggregation import getNewsData
+from dataAggregation import getStock
+from LinearRegressionModel import model_eval_batch, model_eval
 import glob
 import json
 import numpy as np
@@ -58,23 +61,45 @@ def train(input_data, validation_data, epochs, save_every, batch_size):
 		nlp_data_batches.append(data)
 
 		# process the tsa data
-		tsa_in = tsa_input[i * batch_size:end_index]
+		tsa_in = [tsa[:-1] for tsa in tsa_input[i * batch_size:end_index]]
 		tsa_data_batches.append(tsa_in)
 
-		batch_labels = [t[:-1] for t in tsa_in]
+		batch_labels = [t[-1] for t in tsa_in]
+		batch_labels = np.array(batch_labels)
+		batch_labels = np.reshape(batch_labels, (-1, 1))
 		label_batches.append(batch_labels)
 
-	
+
+	print(label_batches[0])
 	if (len(nlp_data_batches) != len(tsa_data_batches)):
 		print("the data batches should be the same size")
 
 
 	num_batches = len(nlp_data_batches)
 
-	# # Preprocess the validation data as well
-	# tokenized = [tokenize(headline) for headline in validation_data]
-	# validation_data = [tokenized_to_numerized(words, token_to_index)[:-1] for words in tokenized]
+	# Preprocess the validation data as well
+
+	nlp_validation_data = []
+	tsa_validation_data = []
+	for d in validation_data:
+		headlines = getNewsData(d)
+		nlp_validation_data += [merge_headlines(headlines)]
+
+		# unsure if should be an array here
+		tsa_validation_data += [getStock(d, "aa.us")]
+
+	tokenized = [tokenize(headline) for headline in nlp_validation_data]
+	nlp_validation_data = [tokenized_to_numerized(words, token_to_index)[:-1] for words in tokenized]
+
+	tsa_validation_labels = [t[-1] for t in tsa_validation_data]
+	print("labels")
+	print(tsa_validation_labels)
+	tsa_validation_data = [t[:-1] for t in tsa_validation_data]
+	#
 	# validation_labels, validation_masks = list(zip(*[label(words, index_to_token) for words in tokenized]))
+	#
+
+
 
 	sess = tf.Session()
 
@@ -86,7 +111,7 @@ def train(input_data, validation_data, epochs, save_every, batch_size):
 
 	# fake tsa model
 	tsa_model = lambda x: None
-	tsa_callback = lambda x : [[0]]
+	tsa_callback = model_eval_batch
 
 
 	model = AggregateModel(nlp_model=nlp_model, tsa_model=tsa_model, tsa_in_tf=False)
@@ -108,14 +133,14 @@ def train(input_data, validation_data, epochs, save_every, batch_size):
 			print(f"Loss on training step {step}: {loss_value}")
 
 		print(f"Training Loss: {epoch_loss / num_batches}")
-		print(f"Validation Loss: {model.get_loss(validation_data, validation_labels, validation_masks, sess)}")
+		print(f"Validation Loss: {model.get_loss(nlp_validation_data, tsa_validation_data, tsa_validation_labels, sess, tsa_callback=tsa_callback)}")
 
 		# Add the average loss on this epoch to the average losses list
 		avg_losses.append(epoch_loss / num_batches)
 
-		# if (epoch + 1) % save_every == 0:
-		# 	# Save the model every <save_every> epochs
-		# 	model.save_model(sess, "aggregate_model")
+		if (epoch + 1) % save_every == 0:
+			# Save the model every <save_every> epochs
+			model.save_model(sess, "aggregate_model")
 
 		print("===============")
 
@@ -126,9 +151,9 @@ def main():
 	# train_headlines = ["millennials scare stick", "hyam exdivs lottery waterproof", "exdivs lottery kalvista"]
 	# test_headlines = ["millennials scare stick", "hyam exdivs lottery waterproof", "exdivs lottery kalvista"]
 	# time_series_inputs = [[1,2,3,4,5]]
-	
-	train_dates = ["2015-07-29", "2015-07-30"]
-	test_dates = ["2015-07-29", "2015-07-23"]
+
+	train_dates = ["2015-07-29" for _ in range(32)]
+	test_dates = ["2015-07-29" for _ in range(32)]
 
 	epochs = 100
 	save_every = 10

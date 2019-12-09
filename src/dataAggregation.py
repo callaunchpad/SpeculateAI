@@ -6,8 +6,6 @@ import os
 import pandas as pd
 import numpy as np
 
-STOCK_PATH = "data/SOMETHING"
-ETF_PATH = "data/small_financial_news"
 
 def getETF(date):
 	"""Takes in a date (str) and outputs corresponding data array for all ETFs"""
@@ -35,7 +33,7 @@ def getStock(date, stock_name):
 	stock_data = pd.read_csv(path)
 	stock_data = stock_data[stock_data['Date'] <= date]
 
-	return np.array(stock_data)
+	return np.array(stock_data["Close"])
 
 
 def getETF1(date, name):
@@ -124,7 +122,7 @@ def getETF5(initialDate, name, category, days):
 
 def getNewsData(date, max_num=20):
 	"""Takes in an initial date (str), outputs news headline on that date"""
-	path = "data/financial_news_data/*.json"
+	path = "../data/news/*.json"
 	files = glob.glob(path)
 	headlines = []
 	for file in files:
@@ -226,4 +224,3 @@ def aggregate(initialDate, name, categoryData, categoryNews, days):
 
 
 a = getStock("2015-07-29", "aat.us")
-print(a)

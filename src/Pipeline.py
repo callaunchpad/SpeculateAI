@@ -7,7 +7,7 @@ import nltk
 
 def tokenize(s, arr_len=100):
     tokenizedArr = ["START"]
-    tokenizedArr += list(gensim.utils.tokenize(s))
+    tokenizedArr += list(gensim.utils.tokenize(s))[:97]
     tokenizedArr += ["END"]
     for _ in range(arr_len - len(tokenizedArr) - 1):
         tokenizedArr += ["PAD"]

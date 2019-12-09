@@ -117,7 +117,8 @@ class AggregateModel():
         if tsa_callback:
             # Get the tsa outputs
             tsa_outputs = tsa_callback(tsa_inputs)
-
+            print("tsa_outputs")
+            print(tsa_outputs)
             feed_dict = {
                 self.nlp_inputs: nlp_inputs,
                 self.tsa_outputs: tsa_outputs,
@@ -152,7 +153,8 @@ class AggregateModel():
         if tsa_callback:
             # Get the tsa outputs
             tsa_outputs = tsa_callback(tsa_inputs)
-
+            print("tsa outputs")
+            print(tsa_outputs)
             feed_dict = {
                 self.nlp_inputs: nlp_inputs,
                 self.tsa_outputs: tsa_outputs,

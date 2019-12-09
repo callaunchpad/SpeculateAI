@@ -1,9 +1,22 @@
-import numpy as np
+import pickle
 import gensim
-from gensim.models import KeyedVectors
-import string
-from nltk.corpus import stopwords
-import nltk
+
+model = gensim.models.KeyedVectors.load_word2vec_format('/Users/sophiasong/Desktop/GoogleNews-vectors-negative300.bin', binary=True)
+word2vec = model.wv #holds the mapping between words and embeddings
+#model.wv.save_word2vec_format('word2vec.bin', binary = True)
+#vocab = model.vocab
+with open('vectors.bin', 'wb') as v:
+	pickle.dump(word2vec, v)
+	v.close()
+
+del model
+
+'''
+    Tokens:
+        START - start token
+        PAD - padding token
+        END - end token
+'''
 
 def tokenize(s, arr_len=100):
     tokenizedArr = ["START"]
@@ -14,103 +27,19 @@ def tokenize(s, arr_len=100):
     return tokenizedArr
 
 
-def vectorize(arr, dictionary=None):
-    """Takes in a tokenized list of words, returns a list of word2vec vectors"""
+def vectorize(arr):
+	"""Takes in a tokenized list of words, returns a list of word2vec vectors"""
+    file = 
     vectors = []
-
-    if dictionary is None:
-        dictionary = KeyedVectors.load_word2vec_format('word2vec.bin', binary=True)
-
     for word in arr:
-        if word != "PAD" and word != "END" and word != "START":
-            vectors.append(dictionary[word])
+    	if word != 'pad' :
+    		pickle_in = open('vectors.bin', "rb")
+    		dictionary = pickle.load(pickle_in)
+    		vectors.append(dictionary[word])
     return vectors
 
-def label(arr, words_list):
-    # Plus one for the END character
-    all_vecs = np.eye(len(words_list) + 1)
-    label_words = arr[1:]
-    labels = [words_list.index(word) for word in label_words]
-    masks = [0 if word in ["PAD", "END"] else 1 for word in label_words]
-    return labels, masks
-
-def clean_headline(headline):
-    """
-    Cleans a headline for analysis
-    :param headline: The headline to clean
-    :return: The cleaned headline
-    """
-    # Replace common problems like double dash or possessives
-    headline = headline.replace("--", " ")
-    headline = headline.replace("'s", "")
-
-    # Remove punctuation for tokenizer
-    translator = str.maketrans("", "", string.punctuation)
-    headline = headline.translate(translator)
-
-    # Lower case all letters
-    headline = [word.lower() for word in headline.split(' ') if word.isalpha()]
-
-    # Remove stop words
-    stops = set(stopwords.words('english'))
-
-    headline = " ".join([word for word in headline if word not in stops])
+def label(arr):
+    return arr
 
 
-    return headline
 
-def numerized_to_text(numerized_seq, vocabulary):
-    """
-    Returns a generated string from a sequence of tokens
-
-    :param numerized_seq: The sequence of tokenized words
-    :param vocabulary: The lookup table
-    :return: A string corresponding to the numerized sequence
-    """
-
-    translated_words = []
-
-    for index in numerized_seq:
-        if vocabulary[index] == "PAD":
-            continue
-
-        translated_words.append(vocabulary[index])
-
-    converted_string = " ".join(translated_words)
-
-    return converted_string
-
-
-def tokenized_to_numerized(tokenized_seq, dictionary):
-    """
-    Takes in a cleaned, tokenized sequence and numerizes the sequence for NLP
-
-    :param tokenized_seq: The list of tokens
-    :param dictionary: The lookup map for token to index
-    :return: The numerized sequence
-    """
-
-    numerized_seq = []
-
-    for token in tokenized_seq:
-        try:
-            numerized_seq.append(dictionary[token])
-        except KeyError:
-            numerized_seq.append(dictionary['UNK'])
-
-    return numerized_seq
-
-def combine_headlines(headlines):
-    """
-    Combines headlines into one string with END tokens in between
-    :param headlines: The list of headlines we wish to look at
-    :return: Input_Str: the string we will input to the NLP model
-    """
-    output_str = ""
-
-    for headline in headlines[:-1]:
-        output_str += clean_headline(headline) + " END "
-
-    output_str += clean_headline(headlines[-1])
-
-    return output_str

@@ -21,8 +21,13 @@ def train(input_data, validation_data, epochs, save_every, batch_size):
 	"""
 
 	# Build a map from token to index
-	with open("vocabulary.txt", 'r') as vocab_file:
-		index_to_token = vocab_file.read().split("\n")
+	# with open("vocabulary.txt", 'r') as vocab_file:
+	# 	index_to_token = vocab_file.read().split("\n")
+
+	
+	arr = getNewsData("2015-07-29")
+	merge_headlines(arr)
+
 
 	token_to_index = {word: index for index, word in enumerate(index_to_token)}
 

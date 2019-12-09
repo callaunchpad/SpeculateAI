@@ -123,7 +123,7 @@ def getETF5(initialDate, name, category, days):
 
 def getNewsData(date):
 	"""Takes in an initial date (str), outputs news headline on that date"""
-	path = "/Users/sophiasong/Documents/AggregateData/us-financial-news-articles/2018_01_11/*.json"
+	path = "data/financial_news_data/*.json"
 	files = glob.glob(path)
 	headlines = []
 	for file in files:
@@ -226,4 +226,8 @@ def aggregate(initialDate, name, categoryData, categoryNews, days):
 
 #getETF5("2012-11-09", "acim", 1, 4)
 #getNewsData3("2018-01-03", "text", 3)
-aggregate("2015-07-28", "acim", 1, "title", 2)
+# aggregate("2015-07-28", "acim", 1, "title", 2)
+a = getNewsData("2015-07-29")
+print(a)
+
+a = getStock("2015-07-29")

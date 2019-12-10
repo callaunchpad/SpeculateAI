@@ -61,7 +61,7 @@ def train(epochs, save_every, batch_size):
 	date_range = pd.date_range(min_date, max_date, freq="D").tolist()
 
 	print(f"Loading data from {len(stocks)} stocks")
-	for stock in stocks:
+	for stock in stocks[:100]:
 		for date in date_range:
 			headlines = getNewsData3(str(date)[:10], "title", 3)
 			# Ensure we have sufficient data here

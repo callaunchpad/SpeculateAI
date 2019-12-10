@@ -142,7 +142,7 @@ def getNewsData3(initialDate, category, days):
 	Output: outputs data array consisting of entries up to DAYS prior to INITIALDATE for CATEGORY
 
 	"""
-	path = "/Users/sophiasong/Documents/AggregateData/us-financial-news-articles/2018_01_11/*.json"
+	path = "../data/small_financial_news/*.json"
 	files = glob.glob(path)
 	news = []
 	
@@ -162,8 +162,6 @@ def getNewsData3(initialDate, category, days):
 		if blogDate in dates:
 			news.append(json_decode[category])
 
-
-	#print(news)
 	return news
 
 def getNewsData2017(initialDate, category, days):
@@ -221,6 +219,3 @@ def aggregate(initialDate, name, categoryData, categoryNews, days):
 
 	return aggregate
 
-
-
-a = getStock("2015-07-29", "aat.us")

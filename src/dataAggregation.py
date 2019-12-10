@@ -148,8 +148,10 @@ def getNewsData3(initialDate, category, days):
 
 	for day in range(days+1):
 		prevday = str(date - datetime.timedelta(days = day))
-
-		news.append(date_to_article[prevday])
+		try:
+			news.append(date_to_article[prevday])
+		except KeyError:
+			continue
 
 	return news
 

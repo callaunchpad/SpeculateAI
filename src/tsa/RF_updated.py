@@ -1,5 +1,4 @@
 
-from features import *
 from pandas import read_csv, read_table
 import pandas as pd
 import numpy as np
@@ -11,6 +10,7 @@ from sklearn.metrics import roc_curve, auc
 from matplotlib.legend_handler import HandlerLine2D
 from os import listdir
 from os.path import isfile, join
+from src.tsa.features import *
 
 #Creates featurized matrix to feed into classifier
 def feature_list(data, window):
@@ -84,6 +84,7 @@ def main():
                 series = stock_df["Close"]
                 # stock = pd.read_table(filename, delimiter=',', header=0, index_col=0)
                 data = data + stock_df["Close"].values.tolist()
+                print(data[0])
             except:
                 continue
             # try:
@@ -252,6 +253,7 @@ def main():
             for j in range(10):
                 accuracy.append(run_rf_model(data, i, n_estim, max_dep, min_split, min_leaf, n_job)[5])
             temp = statistics.mean(accuracy)
+            print(temp)
             ax[3][1].scatter(k, temp, s=150)
             k+=1
 
@@ -261,7 +263,7 @@ def main():
         ax[3][1].grid()
 
     #calling graphing functions
-    # average_randomforest_train()
+    average_randomforest_train()
     # average_randomforest_test()
     # auc_nestimators()
     # max_depth()

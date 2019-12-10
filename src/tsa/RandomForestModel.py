@@ -1,5 +1,4 @@
 
-from features import *
 from pandas import read_csv, read_table
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
@@ -12,6 +11,8 @@ from matplotlib.legend_handler import HandlerLine2D
 from xgboost import XGBClassifier
 from os import listdir
 from os.path import isfile, join
+
+from src.tsa.features import *
 
 
 def feature_list(data, window):

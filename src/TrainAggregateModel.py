@@ -62,7 +62,6 @@ def train(epochs, save_every, batch_size):
 
 	print(f"Loading data from {len(stocks)} stocks")
 	for stock in stocks[:100]:
-		print(f"Collecting date from {stock}")
 		for date in date_range:
 			headlines = getNewsData3(str(date)[:10], "title", 3)
 			# Ensure we have sufficient data here
@@ -83,8 +82,7 @@ def train(epochs, save_every, batch_size):
 	# Split into validation and training
 	tsa_input, nlp_input, tsa_validation_data, nlp_validation_data = train_validation_split(tsa_input, nlp_input)
 
-	print(f"TSA Inputs: {len(tsa_input)}")
-	exit(0)
+
 	avg_losses = []
 
 	# tokenize, vectorize, and batch data

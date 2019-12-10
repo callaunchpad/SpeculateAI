@@ -31,7 +31,7 @@ def getStock(date, stock_name):
 
 	# Grab the time series
 	stock_data = pd.read_csv(path)
-	stock_data = stock_data[stock_data['Date'] <= date]
+	stock_data = stock_data[stock_data['Date'] <= str(date)]
 
 	return np.array(stock_data["Close"])
 
@@ -153,7 +153,7 @@ def getNewsData3(initialDate, category, days):
 		except KeyError:
 			continue
 
-	return news
+	return [item for sublist in news for item in sublist]
 
 def getNewsData2017(initialDate, category, days):
 	""" 
@@ -223,11 +223,14 @@ for file in files:
 
 # Load the other news set
 big_news_set = pd.read_csv('../data/massive_news_set.csv')
+row_index = 0
 
-for row_index in range(len(big_news_set)):
+while row_index < len(big_news_set):
 	row = big_news_set.iloc[row_index]
 
 	try:
 		date_to_article[parse_publish_date(row['publish_date'])].append(row['headline_text'])
 	except KeyError:
 		date_to_article[parse_publish_date(row['publish_date'])] = [row['headline_text']]
+
+	row_index += 100

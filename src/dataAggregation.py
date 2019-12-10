@@ -142,25 +142,14 @@ def getNewsData3(initialDate, category, days):
 	Output: outputs data array consisting of entries up to DAYS prior to INITIALDATE for CATEGORY
 
 	"""
-	path = "../data/small_financial_news/*.json"
-	files = glob.glob(path)
 	news = []
-	
 
 	date = datetime.date(*map(int, initialDate.split('-')))
-	dates = []
 
 	for day in range(days+1):
 		prevday = str(date - datetime.timedelta(days = day))
-		dates.append(prevday)
 
-
-	for file in files:
-		input_file = open(file, 'r')
-		json_decode = json.load(input_file)
-		blogDate = json_decode["published"][0:10]
-		if blogDate in dates:
-			news.append(json_decode[category])
+		news.append(date_to_article[prevday])
 
 	return news
 

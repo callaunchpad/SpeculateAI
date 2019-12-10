@@ -198,7 +198,13 @@ def aggregate(initialDate, name, categoryData, categoryNews, days):
 
 	return aggregate
 
+def parse_publish_date(date_str):
+	if type(date_str) != str:
+		date_str = str(date_str)
 
+	parsed_date = date_str[:4] + "-" + date_str[4:6] + "-" + date_str[6:]
+
+	return parsed_date
 
 # Build a mapping from date to news article
 path = "../data/small_financial_news/*.json"
@@ -214,3 +220,14 @@ for file in files:
 		date_to_article[blogDate].append(json_decode['title'])
 	except KeyError:
 		date_to_article[blogDate] = [json_decode['title']]
+
+# Load the other news set
+big_news_set = pd.read_csv('../data/massive_news_set.csv')
+
+for row_index in range(len(big_news_set)):
+	row = big_news_set.iloc[row_index]
+
+	try:
+		date_to_article[parse_publish_date(row['publish_date'])].append(row['headline_text'])
+	except KeyError:
+		date_to_article[parse_publish_date(row['publish_date'])] = [row['headline_text']]

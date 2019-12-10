@@ -62,6 +62,7 @@ def train(epochs, save_every, batch_size):
 
 	print(f"Loading data from {len(stocks)} stocks")
 	for stock in stocks[:100]:
+		print(f"Collecting date from {stock}")
 		for date in date_range:
 			headlines = getNewsData3(str(date)[:10], "title", 3)
 			# Ensure we have sufficient data here

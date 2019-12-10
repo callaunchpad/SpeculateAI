@@ -171,26 +171,14 @@ def getNewsData2017(initialDate, category, days):
 	Output: outputs data array consisting of entries up to DAYS prior to INITIALDATE for CATEGORY
 
 	"""
-	path = "/Users/sophiasong/Documents/AggregateData/666_20170904105517/666_webhose-2015-07_20170904105917/*.json"
-	files = glob.glob(path)
 	news = []
 
 	date = datetime.date(*map(int, initialDate.split('-')))
-	dates = []
 
 	for day in range(days+1):
 		prevday = str(date - datetime.timedelta(days = day))
-		dates.append(prevday)
 
-	for file in files:
-		input_file = open(file, 'r')
-		json_decode = json.load(input_file)
-		newsDate = json_decode["published"][0:10]
-		if newsDate in dates:
-			news.append(json_decode[category])
-	
-	#print(headlines)
-	#print(len(headlines))
+		news.append(date_to_article[prevday])
 
 	return news
 
@@ -219,3 +207,19 @@ def aggregate(initialDate, name, categoryData, categoryNews, days):
 
 	return aggregate
 
+
+
+# Build a mapping from date to news article
+path = "../data/small_financial_news/*.json"
+files = glob.glob(path)
+date_to_article = {}
+
+for file in files:
+	input_file = open(file, 'r')
+	json_decode = json.load(input_file)
+	blogDate = json_decode["published"][0:10]
+
+	try:
+		date_to_article[blogDate].append(json_decode['title'])
+	except KeyError:
+		date_to_article[blogDate] = [json_decode['title']]

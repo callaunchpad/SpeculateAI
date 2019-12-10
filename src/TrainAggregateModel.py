@@ -73,7 +73,7 @@ def train(epochs, save_every, batch_size):
 
 			stock_data = getStock(date, stock_string)
 
-			if stock_data == []:
+			if len(stock_data) == 0:
 				continue
 
 			tsa_input += [stock_data]

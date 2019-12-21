@@ -148,7 +148,9 @@ def train(model, input_data, validation_data, epochs, save_every, batch_size):
 
 def main():
 	# Get the data
-	x = pd.read_csv("../../data/test/Data/Stocks/a.us.txt")
+	# path = "../../data/test/Data/Stocks/a.us.txt"
+	path = "../../data/test/Data/Stocks/nvda.us.txt"
+	x = pd.read_csv(path)
 	split = int(len(x["Close"]) * (1 - 20/100))
 	close = x["Close"]
 	close_train = x["Close"][:split].reset_index(drop=True)
